@@ -112,6 +112,12 @@ export const SANCTION_LABELS: Record<SanctionType, string> = {
   disciplina: "Disciplina",
 };
 
+export const SANCTION_PLURAL_LABELS: Record<SanctionType, string> = {
+  amonestacion: "Amonestaciones",
+  advertencia: "Advertencias",
+  disciplina: "Disciplina",
+};
+
 export const SANCTION_ORDER: SanctionType[] = ["amonestacion", "advertencia", "disciplina"];
 
 export const ATTENDANCE_ORDER: AttendanceStatus[] = [

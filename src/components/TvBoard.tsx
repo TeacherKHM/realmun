@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LiveTimer } from "@/components/LiveTimer";
-import { SANCTION_LABELS, SANCTION_ORDER, type SanctionType, type TimerState } from "@/lib/types";
+import { SANCTION_PLURAL_LABELS, SANCTION_ORDER, type SanctionType, type TimerState } from "@/lib/types";
 
 export type TvPayload = {
   now: string;
@@ -89,7 +89,7 @@ export function TvBoard({ code, initial }: { code: string; initial: TvPayload })
         <dl className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
           {SANCTION_ORDER.map((type) => (
             <div key={type}>
-              <dt className="text-xs text-white/55">{SANCTION_LABELS[type]}s</dt>
+              <dt className="text-xs text-white/55">{SANCTION_PLURAL_LABELS[type]}</dt>
               <dd className="font-clock mt-1 text-4xl">{data.sanctions[type] ?? 0}</dd>
             </div>
           ))}

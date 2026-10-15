@@ -70,6 +70,31 @@ Notas de implementación:
 - Frontend completo: portada de placas, login, consola con 7 secciones, pantalla de TV y endpoint de sondeo.
 - Verificado: `tsc --noEmit` limpio, `npm run build` correcto, todas las rutas responden (públicas 200, `/comite/*` sin sesión 307 a `/login`), RLS bloquea escrituras y lecturas cruzadas (403 / lista vacía), datos reales renderizados en consola y TV.
 
+### Etapa 2 — Prueba de punta a punta en navegador (completada)
+
+Se condujo Chrome real (puppeteer-core sobre el Chrome del sistema) contra el servidor de desarrollo. Las 15 comprobaciones pasan y **no hay errores de JavaScript**:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Portada con las 4 placas | OK |
+| `/comite/comite-1` sin sesión manda a `/login?next=…` | OK |
+| Login con la contraseña del comité entra a la consola | OK |
+| Asistencia marca *Presente* y el estado persiste | OK |
+| Preset *Discurso* arranca una cuenta regresiva de 1:00 | OK |
+| La TV (pestaña limpia, sin sesión) muestra el **mismo** tiempo | OK (consola 0:59 / TV 0:57) |
+| La TV muestra sigla, sesión y marcador | OK |
+| Registrar sanción desde la consola | OK |
+| Guardar evaluación de la rúbrica | OK |
+| Hojas de resolución, delegados y sesiones cargan | OK |
+| La sesión del comité 1 no abre el comité 2 (redirige al propio) | OK |
+
+Correcciones derivadas de la prueba:
+
+- La TV escribía **«Amonestacións»** al pluralizar con un simple `+ "s"`. Ahora usa
+  `SANCTION_PLURAL_LABELS` en `src/lib/types.ts` («Amonestaciones», «Advertencias», «Disciplina»).
+- Se comprobó que el desfase de hidratación que apareció en la primera pasada lo provocaba
+  el propio guion de prueba (mutaba el DOM antes de que React hidratara), no la aplicación.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes).
