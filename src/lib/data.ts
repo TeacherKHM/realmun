@@ -1,0 +1,136 @@
+import { requireCommittee } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import type {
+  AttendanceRow,
+  Committee,
+  Delegate,
+  ResolutionRow,
+  RubricRow,
+  SanctionRow,
+  SessionRow,
+  TimerState,
+} from "@/lib/types";
+
+const COMMITTEE_COLUMNS = "id, code, sigla, name, topic, accent, sort_order, active_session_id";
+
+export async function listCommittees(): Promise<Committee[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("committees")
+    .select(COMMITTEE_COLUMNS)
+    .order("sort_order", { ascending: true });
+  return (data ?? []) as Committee[];
+}
+
+export async function getCommittee(code: string): Promise<Committee | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("committees")
+    .select(COMMITTEE_COLUMNS)
+    .eq("code", code)
+    .maybeSingle<Committee>();
+  return data ?? null;
+}
+
+/**
+ * Sesión y comité de la ruta /comite/[code], con la sesión activa ya resuelta.
+ * Lanza redirección si no hay sesión válida de ese comité.
+ */
+export async function resolveConsole(code: string) {
+  const { committee } = await requireCommittee(code);
+  const sessions = await listSessions(committee.id);
+  const session = sessions.find((item) => item.id === committee.active_session_id) ?? null;
+  return { committee, session, sessions };
+}
+
+export async function listSessions(committeeId: string): Promise<SessionRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sessions")
+    .select("id, committee_id, title, session_date, status, created_at")
+    .eq("committee_id", committeeId)
+    .order("session_date", { ascending: false })
+    .order("created_at", { ascending: false });
+  return (data ?? []) as SessionRow[];
+}
+
+export async function listDelegates(committeeId: string, onlyActive = false): Promise<Delegate[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("delegates")
+    .select("id, committee_id, name, delegation, active, sort_order")
+    .eq("committee_id", committeeId)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (onlyActive) query = query.eq("active", true);
+
+  const { data } = await query;
+  return (data ?? []) as Delegate[];
+}
+
+export async function getAttendanceMap(
+  sessionId: string,
+): Promise<Record<string, AttendanceRow>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("attendance")
+    .select("id, session_id, delegate_id, status, note, updated_at")
+    .eq("session_id", sessionId);
+
+  const map: Record<string, AttendanceRow> = {};
+  for (const row of (data ?? []) as AttendanceRow[]) map[row.delegate_id] = row;
+  return map;
+}
+
+export async function listSanctions(committeeId: string, sessionId?: string | null) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("sanctions")
+    .select("id, committee_id, session_id, delegate_id, type, reason, created_at")
+    .eq("committee_id", committeeId)
+    .order("created_at", { ascending: false });
+
+  if (sessionId) query = query.eq("session_id", sessionId);
+
+  const { data } = await query;
+  return (data ?? []) as SanctionRow[];
+}
+
+export async function listResolutions(committeeId: string, sessionId?: string | null) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("resolutions")
+    .select("id, committee_id, session_id, delegate_id, version, received_at, notes")
+    .eq("committee_id", committeeId)
+    .order("received_at", { ascending: false });
+
+  if (sessionId) query = query.eq("session_id", sessionId);
+
+  const { data } = await query;
+  return (data ?? []) as ResolutionRow[];
+}
+
+export async function getRubricMap(sessionId: string): Promise<Record<string, RubricRow>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("rubric_scores")
+    .select("id, committee_id, session_id, delegate_id, scores, comment, updated_at")
+    .eq("session_id", sessionId);
+
+  const map: Record<string, RubricRow> = {};
+  for (const row of (data ?? []) as RubricRow[]) map[row.delegate_id] = row;
+  return map;
+}
+
+export async function getTimerState(committeeId: string): Promise<TimerState | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("timer_state")
+    .select(
+      "committee_id, mode, running, label, speaker, ends_at, remaining_ms, started_at, elapsed_ms, updated_at",
+    )
+    .eq("committee_id", committeeId)
+    .maybeSingle<TimerState>();
+  return data ?? null;
+}

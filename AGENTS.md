@@ -1,0 +1,78 @@
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+
+# RealMUN — bitácora de desarrollo
+
+Consola de comités del modelo de Naciones Unidas del **Instituto Real de San Luis**.
+Stack: **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Supabase**, desplegado en Vercel.
+
+> Las constantes críticas (IDs, llaves, contraseñas, comandos) viven en `MEMORY.md`.
+> Este archivo es la bitácora: se actualiza al cerrar cada etapa.
+
+## Cómo correr el proyecto
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # build de producción
+npx next typegen   # regenera los tipos de rutas (PageProps/LayoutProps) tras crear rutas nuevas
+```
+
+Requiere `.env.local` (ver `.env.local.example`).
+
+## Alcance
+
+- **Portada** con los 4 comités como placas de delegación; enlace a la pantalla de TV de cada uno.
+- **Login por comité**: una cuenta Supabase Auth por comité; la contraseña es compartida dentro del comité.
+- **Consola del comité** (`/comite/[code]`) con secciones: resumen, asistencia, cronómetro, sanciones, hojas de resolución, rúbrica, delegados y sesiones.
+- **Pantalla de TV** (`/vista-tv/[code]`): cronómetro gigante, comité, orador y marcador; sin login, sincronizada cada segundo.
+- **Sesiones múltiples**: la sesión activa vive en `committees.active_session_id` y define qué se ve en consola y TV.
+- **Rúbrica**: 4 criterios (1–10) definidos en `src/lib/types.ts` → `RUBRIC_CRITERIA`.
+
+## Arquitectura
+
+| Ruta | Rol |
+| --- | --- |
+| `src/app/page.tsx` | Portada con las placas |
+| `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité |
+| `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
+| `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
+| `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
+| `src/proxy.ts` | Protección de `/comite/*` y refresco de la sesión |
+| `src/app/actions/*.ts` | Server actions por dominio |
+| `src/lib/*` | Acceso a datos, sesión, formato y tipos |
+| `supabase/migrations/*.sql` | Esquema aplicado al proyecto remoto |
+
+Notas de implementación:
+
+- **Next 16**: `proxy.ts` sustituye a `middleware.ts`; `params` y `searchParams` son promesas; `cookies()` es asíncrono. Los tipos `PageProps<'/ruta'>` y `LayoutProps<'/ruta'>` se generan con `next typegen`.
+- **Datos**: todo pasa por server actions con el cliente Supabase ligado a la sesión del encargado (RLS real). Las mutaciones se validan en `src/lib/guard.ts` y refrescan la consola con `revalidateConsole`.
+- **Cronómetro**: estado en `timer_state` (una fila por comité). `ends_at` + `started_at` permiten que consola y TV calculen el tiempo con reloj de servidor, sin depender de latencia; `LiveTimer` avanza localmente cada 200 ms.
+- **TV**: el sondeo a `/api/tv/[code]` cada segundo trae cronómetro y marcador (la función `committee_tv_stats` es `security definer` y no expone motivos de sanción).
+- **Diseño**: no hay Tailwind config file; los tokens viven en `src/app/globals.css` (`@theme`). Tipografías: Instrument Serif (display), Public Sans (interfaz), Archivo (reloj). Clases propias: `.placard`, `.btn*`, `.panel`, `.field`, `.rail-link`, `.clock`.
+- `cacheComponents` se dejó **desactivado** a propósito: el panel es dinámico de punta a punta.
+
+## Bitácora
+
+### Etapa 1 — Cimientos (completada)
+
+- Proyecto Next 16 + TS + Tailwind 4 creado en `Documents/RealMUN`; repositorio git propio inicializado.
+- Proyecto Supabase `realmun` creado vía MCP (ref `lshgixbdzkfbjmjfbbvn`, región us-east-1, plan free).
+- Migraciones aplicadas: tablas (`committees`, `profiles`, `sessions`, `delegates`, `attendance`, `sanctions`, `resolutions`, `rubric_scores`, `timer_state`), RLS con `current_committee_id()`, catálogo público de comités, lectura pública de `timer_state`, función pública `committee_tv_stats`, realtime para `timer_state`.
+- Cuentas de encargado creadas por comité + `profiles` vinculados. Login probado contra `/auth/v1/token`.
+- Frontend completo: portada de placas, login, consola con 7 secciones, pantalla de TV y endpoint de sondeo.
+- Verificado: `tsc --noEmit` limpio, `npm run build` correcto, todas las rutas responden (públicas 200, `/comite/*` sin sesión 307 a `/login`), RLS bloquea escrituras y lecturas cruzadas (403 / lista vacía), datos reales renderizados en consola y TV.
+
+### Pendientes
+
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes).
+- Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos).
+- Cambiar la contraseña por defecto de los comités.
+- `vercel link` + primer deploy y variables de entorno en Vercel.

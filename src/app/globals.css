@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   RealMUN — tokens de identidad
+   Paleta institucional de papelería diplomática: tinta, azul bandera de la ONU,
+   papel documento frío, oro ceremonial y rojo sanción.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-ink: #0b1f3a;
+  --color-ink-deep: #06101f;
+  --color-plenary: #123a6b;
+  --color-flag: #4b92db;
+  --color-sky: #a8cdeb;
+  --color-paper: #f3f5f9;
+  --color-paper-warm: #fbfcfe;
+  --color-line: #d3dce8;
+  --color-line-soft: #e6ecf4;
+  --color-muted: #5b6b80;
+  --color-gold: #c9a227;
+  --color-sanction: #b3261e;
+  --color-ok: #1f7a4d;
+
+  --font-display: var(--font-instrument-serif), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-public-sans), system-ui, -apple-system, sans-serif;
+  --font-clock: var(--font-archivo), "Public Sans", system-ui, sans-serif;
+
+  --animate-placard: placard-rise 520ms cubic-bezier(0.16, 0.84, 0.36, 1) both;
+}
+
+@keyframes placard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) rotateX(6deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  ::selection {
+    background: var(--color-flag);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-flag);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+}
+
+@layer components {
+  /* Placa de delegación: la pieza característica del modelo. */
+  .placard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-paper-warm);
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink);
+    border-bottom-width: 3px;
+    padding: 1.75rem 1.5rem 1.25rem;
+    transition:
+      transform 260ms cubic-bezier(0.16, 0.84, 0.36, 1),
+      box-shadow 260ms ease;
+    transform-origin: bottom center;
+  }
+
+  .placard::before {
+    content: "";
+    position: absolute;
+    inset: 6px 6px auto 6px;
+    height: 3px;
+    background: var(--placard-accent, var(--color-flag));
+  }
+
+  @media (hover: hover) {
+    .placard:hover {
+      transform: translateY(-8px) rotateX(7deg);
+      box-shadow: 0 22px 40px -22px rgba(6, 16, 31, 0.65);
+    }
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-ink);
+    color: #fff;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-plenary);
+  }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--color-ink);
+    border-color: var(--color-line);
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--color-sanction);
+    border-color: color-mix(in oklab, var(--color-sanction) 35%, white);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: var(--color-sanction);
+    color: #fff;
+    border-color: var(--color-sanction);
+  }
+
+  .field {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    padding: 0.55rem 0.7rem;
+    color: var(--color-ink);
+  }
+
+  .field:focus {
+    border-color: var(--color-flag);
+  }
+
+  .panel {
+    background: var(--color-paper-warm);
+    border: 1px solid var(--color-line);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .rail-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    border-left: 3px solid transparent;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9375rem;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+  }
+
+  .rail-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+  }
+
+  .rail-link[data-active="true"] {
+    background: rgba(75, 146, 219, 0.16);
+    border-left-color: var(--color-flag);
+    color: #fff;
+  }
+
+  .clock {
+    font-family: var(--font-clock);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.03em;
+    line-height: 0.86;
+  }
+
+  .hairline {
+    border-color: var(--color-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
