@@ -115,9 +115,20 @@ Reglas que quedaron fijas:
 > Nota: Tailwind 4 en modo desarrollo puede servir un fragmento de CSS en caché; si un cambio de
 > `globals.css` no se ve, hay que forzar la recompilación antes de dudar del código.
 
+### Etapa 4 — Despliegue a producción (completada)
+
+El proyecto se desplegó a **https://realmun.vercel.app** con el CLI 64.2.0:
+
+- `vercel link --yes --project realmun` → vinculado a `k-hintze-m-7199s-projects/realmun` (`prj_ZtiKqQtJcZAB8jJDf7XrELOEvSVD`).
+- Variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) cargadas en Production, Preview y Development.
+- `vercel --prod` → despliegue correcto (sin protección activa que bloquee las rutas).
+- Comprobación de rutas: `/` 200, `/login` 200, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200, `/comite/comite-1` → 307 a `/login`.
+- Prueba de punta a punta con Chrome real contra producción: todas las 15 comprobaciones pasan, sin errores de JavaScript (login, asistencia, cronómetro, TV, sanciones, rúbrica, hojas, delegados, sesiones y bloqueo entre comités).
+- El marcador de la TV en producción muestra correctamente «Amonestaciones» (plural corregido).
+
 ### Pendientes
 
-- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes).
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Las nuevas capturas con las esquinas redondeadas están en `~/Desktop/RealMUN-capturas/`.
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos).
 - Cambiar la contraseña por defecto de los comités.
-- `vercel link` + primer deploy y variables de entorno en Vercel.
+- (Despliegue hecho) — pendiente: conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).

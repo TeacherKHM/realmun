@@ -2,6 +2,34 @@
 
 Resumen operativo de RealMUN. Si algo de aquí cambia, se actualiza este archivo.
 
+## Despliegue en Vercel
+
+| Dato | Valor |
+| --- | --- |
+| URL de producción | **https://realmun.vercel.app** |
+| Proyecto | `realmun` (`prj_ZtiKqQtJcZAB8jJDf7XrELOEvSVD`) |
+| Cuenta | `k-hintze-m-7199` |
+| Equipo | `k-hintze-m-7199s-projects` (`team_peN3afQNFY9g8c8lVvAUrYsA`) |
+| Repositorio git | local, sin remoto todavía (no hay auto-deploy al hacer push) |
+
+Variables de entorno cargadas en **Production, Preview y Development**:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://lshgixbdzkfbjmjfbbvn.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
+```
+
+Comandos de despliegue:
+
+```bash
+vercel link --yes --project realmun   # ya hecho
+vercel env ls                         # lista las variables cargadas
+vercel --prod                         # publica a producción
+```
+
+> El sitio quedó **público**: la protección de despliegue de Vercel no bloquea las rutas,
+> comprobado con `curl` (portada, login, TV y API responden sin sesión de Vercel).
+
 ## Proyecto Supabase
 
 | Dato | Valor |
@@ -43,8 +71,8 @@ where email = '<code>@realmun.mx';
 
 ## Pantallas para el evento
 
-- Consola del encargado: `https://<dominio>/comite/comite-1`
-- Pantalla de TV (sin login, abrir en la TV): `https://<dominio>/vista-tv/comite-1`
+- Consola del encargado: `https://realmun.vercel.app/comite/comite-1`
+- Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
 - Marcador público de la TV: `GET /api/tv/comite-1` (sondeo cada segundo)
 
 ## Esquema de datos (proyecto remoto)
@@ -74,7 +102,7 @@ Funciones y políticas:
 npm run dev                      # desarrollo en localhost:3000
 npx next typegen                 # tipos de rutas después de crear rutas nuevas
 npm run build                    # verificación antes de desplegar
-vercel                           # primer deploy (requiere `vercel login`)
+vercel --prod                    # publicar (el proyecto ya está vinculado)
 ```
 
 ## Decisiones que no hay que re-descubrir
