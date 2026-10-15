@@ -61,7 +61,7 @@ export function Stat({ label, value, hint, tone = "default" }: StatProps) {
           : "text-ink";
 
   return (
-    <div className="border border-line bg-paper-warm px-4 py-3">
+    <div className="rounded-card border border-line bg-paper-warm px-4 py-3">
       <p className="text-xs font-semibold text-muted">{label}</p>
       <p className={`mt-1 font-clock text-3xl ${toneClass}`}>{value}</p>
       {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
@@ -71,7 +71,7 @@ export function Stat({ label, value, hint, tone = "default" }: StatProps) {
 
 export function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="border border-dashed border-line bg-paper px-4 py-6 text-center text-sm text-muted">
+    <p className="rounded-card border border-dashed border-line bg-paper px-4 py-6 text-center text-sm text-muted">
       {children}
     </p>
   );

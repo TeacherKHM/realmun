@@ -65,7 +65,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
                 return (
                   <li
                     key={session.id}
-                    className={`flex flex-wrap items-center justify-between gap-3 border px-4 py-3 ${
+                    className={`flex flex-wrap items-center justify-between gap-3 rounded-control border px-4 py-3 ${
                       isActive ? "border-flag bg-white" : "border-line bg-paper-warm"
                     }`}
                   >
@@ -73,7 +73,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
                       <p className="font-semibold">
                         {session.title}
                         {isActive ? (
-                          <span className="ml-2 border border-flag/50 px-2 py-0.5 text-xs text-plenary">
+                          <span className="ml-2 rounded-chip border border-flag/50 px-2 py-0.5 text-xs text-plenary">
                             en curso
                           </span>
                         ) : null}

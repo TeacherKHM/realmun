@@ -89,7 +89,7 @@ async function AttendanceList({
           return (
             <li
               key={delegate.id}
-              className="flex flex-wrap items-center justify-between gap-3 border border-line bg-white px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
             >
               <div className="min-w-[12rem]">
                 <p className="font-semibold">{delegate.name}</p>

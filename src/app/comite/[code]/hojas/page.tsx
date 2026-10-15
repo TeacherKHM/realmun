@@ -101,7 +101,7 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
                   return (
                     <li
                       key={row.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border border-line bg-white px-4 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
                     >
                       <div>
                         <p className="font-semibold">
@@ -133,7 +133,7 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
                 {delegates.map((delegate) => (
                   <li
                     key={delegate.id}
-                    className="flex items-center justify-between border border-line-soft bg-paper px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-control border border-line-soft bg-paper px-3 py-2 text-sm"
                   >
                     <span>{delegate.name}</span>
                     <span className="font-clock">{countFor(delegate.id)}</span>

@@ -63,7 +63,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
             return (
               <li
                 key={delegate.id}
-                className="flex items-baseline justify-between border border-line-soft bg-paper px-3 py-2 text-sm"
+                className="flex items-baseline justify-between rounded-control border border-line-soft bg-paper px-3 py-2 text-sm"
               >
                 <span>{delegate.name}</span>
                 <span className={`font-clock text-lg ${average === null ? "text-muted" : ""}`}>

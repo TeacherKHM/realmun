@@ -121,7 +121,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                 {sessionSanctions.map((row) => (
                   <li
                     key={row.id}
-                    className="flex flex-wrap items-center justify-between gap-3 border border-line bg-white px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
                   >
                     <div className="min-w-[14rem]">
                       <p className="font-semibold">{nameOf(row.delegate_id)}</p>
@@ -129,7 +129,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                       <p className="mt-1 text-xs text-muted">{formatDateTime(row.created_at)}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`border px-2 py-0.5 text-xs ${TYPE_STYLE[row.type]}`}>
+                      <span className={`rounded-chip border px-2 py-0.5 text-xs ${TYPE_STYLE[row.type]}`}>
                         {SANCTION_LABELS[row.type]}
                       </span>
                       <form action={deleteSanction}>
@@ -153,7 +153,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                   {sanctions
                     .filter((row) => row.session_id !== session.id)
                     .map((row) => (
-                      <li key={row.id} className="border border-line-soft bg-paper px-3 py-2">
+                      <li key={row.id} className="rounded-control border border-line-soft bg-paper px-3 py-2">
                         <span className="font-semibold">{nameOf(row.delegate_id)}</span> ·{" "}
                         {SANCTION_LABELS[row.type]} · {row.reason} ·{" "}
                         <span className="text-muted">{formatDateTime(row.created_at)}</span>

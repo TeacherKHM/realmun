@@ -95,6 +95,26 @@ Correcciones derivadas de la prueba:
 - Se comprobó que el desfase de hidratación que apareció en la primera pasada lo provocaba
   el propio guion de prueba (mutaba el DOM antes de que React hidratara), no la aplicación.
 
+### Etapa 3 — Esquinas redondeadas (completada)
+
+Las superficies del panel se redondean con una escala por jerarquía, no con un solo radio para todo:
+
+| Token | Valor | Se usa en |
+| --- | --- | --- |
+| `--radius-card` | 12px | paneles (`.panel`), tarjetas de dato, bloques reloj, aviso punteado, tarjeta del login |
+| `--radius-control` | 8px | botones (`.btn`), campos (`.field`), filas de lista, tarjetas del menú de delegados, alerta de error |
+| `--radius-placard` | 8px | placas de delegación |
+| `--radius-chip` | pill | etiquetas de estado: activa, activo/inactivo, en curso, tipo de sanción |
+
+Reglas que quedaron fijas:
+
+- Las **marcas de bandera** (las barras de acento y los recuadros de color) siguen **rectas**: solo las superficies se redondean, para que el acento siga leyéndose como bandera.
+- El riel de navegación redondea solo su borde interior (`0 var(--radius-control) …`), dejando el borde izquierdo a ras del panel oscuro.
+- La pantalla de TV se dejó **a sangre** (sin tarjetas): es una proyección, no un panel de trabajo.
+
+> Nota: Tailwind 4 en modo desarrollo puede servir un fragmento de CSS en caché; si un cambio de
+> `globals.css` no se ve, hay que forzar la recompilación antes de dudar del código.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes).

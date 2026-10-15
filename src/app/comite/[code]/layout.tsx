@@ -74,7 +74,7 @@ export default async function CommitteeLayout({
             )}
             {active ? (
               <span
-                className={`border px-2 py-0.5 text-xs ${
+                className={`rounded-chip border px-2 py-0.5 text-xs ${
                   active.status === "activa"
                     ? "border-ok/40 text-ok"
                     : "border-line text-muted"

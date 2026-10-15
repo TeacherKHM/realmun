@@ -31,7 +31,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
           title="Tiempo en pantalla"
           description={timer ? `${timer.label ?? "Sin programa"} · ${timer.speaker ?? "sin orador"}` : "Sin estado"}
         >
-          <div className="bg-ink px-6 py-8 text-center">
+          <div className="rounded-card bg-ink px-6 py-8 text-center">
             <LiveTimer state={timer} serverNow={serverNow} variant="console" className="text-white" />
             <p className="mt-4 text-sm text-white/60">
               {timer?.running ? "Corriendo" : "En pausa"}

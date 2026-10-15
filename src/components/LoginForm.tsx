@@ -23,7 +23,7 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
           {committees.map((committee) => (
             <label
               key={committee.id}
-              className="flex cursor-pointer items-center gap-3 border border-line bg-paper-warm px-3 py-3 text-sm has-checked:border-ink has-checked:bg-white"
+              className="flex cursor-pointer items-center gap-3 rounded-control border border-line bg-paper-warm px-3 py-3 text-sm has-checked:border-ink has-checked:bg-white"
             >
               <input
                 type="radio"
@@ -60,7 +60,7 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
       <input type="hidden" name="next" value={next} />
 
       {state.error ? (
-        <p role="alert" className="mt-4 border border-sanction/40 bg-sanction/5 px-3 py-2 text-sm text-sanction">
+        <p role="alert" className="mt-4 rounded-control border border-sanction/40 bg-sanction/5 px-3 py-2 text-sm text-sanction">
           {state.error}
         </p>
       ) : null}

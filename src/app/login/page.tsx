@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </header>
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-xl border border-line bg-paper-warm px-6 py-8 sm:px-9">
+        <div className="w-full max-w-xl rounded-card border border-line bg-paper-warm px-6 py-8 sm:px-9">
           <h1 className="text-3xl">Acceso de encargados</h1>
           <p className="mt-2 text-sm text-muted">
             Cada comité tiene su contraseña. Al entrar se abre la consola de ese comité:

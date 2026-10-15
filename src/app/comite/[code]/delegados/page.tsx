@@ -61,7 +61,7 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
           ) : (
             <ul className="space-y-2">
               {delegates.map((delegate) => (
-                <li key={delegate.id} className="border border-line bg-white">
+                <li key={delegate.id} className="rounded-control border border-line bg-white">
                   <details>
                     <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3">
                       <span className="font-semibold">
@@ -71,7 +71,7 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
                         ) : null}
                       </span>
                       <span
-                        className={`border px-2 py-0.5 text-xs ${
+                        className={`rounded-chip border px-2 py-0.5 text-xs ${
                           delegate.active ? "border-ok/40 text-ok" : "border-line text-muted"
                         }`}
                       >
