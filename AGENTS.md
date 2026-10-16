@@ -203,7 +203,7 @@ Se verificó en la base que la asistencia escrita por la dirección quedó en `c
 
 ### Pendientes
 
-- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png`; de la administración, en el directorio temporal de pruebas (`16-panel-comites.png`, `17-direccion-asistencia.png`).
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel) y `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - Cambiar la contraseña por defecto de los comités **y de la dirección**.
 - Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
