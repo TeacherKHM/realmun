@@ -44,7 +44,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
           <Panel title="Presets" description="Un clic para arrancar el programa.">
             <div className="grid grid-cols-2 gap-2">
               {TIMER_PRESETS.map((preset) => (
-                <form action={timerCommand} key={preset.label}>
+                <form action={timerCommand.bind(null, committee.code)} key={preset.label}>
                   <input type="hidden" name="intent" value="start" />
                   <input type="hidden" name="mode" value="countdown" />
                   <input type="hidden" name="seconds" value={preset.seconds} />
@@ -56,7 +56,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
               ))}
             </div>
 
-            <form action={timerCommand} className="mt-4 flex flex-wrap items-end gap-2">
+            <form action={timerCommand.bind(null, committee.code)} className="mt-4 flex flex-wrap items-end gap-2">
               <input type="hidden" name="intent" value="start" />
               <input type="hidden" name="mode" value="countdown" />
               <div>
@@ -86,14 +86,14 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
           <Panel title="Control en vivo">
             <div className="flex flex-wrap gap-2">
               {timer?.running ? (
-                <form action={timerCommand}>
+                <form action={timerCommand.bind(null, committee.code)}>
                   <input type="hidden" name="intent" value="pause" />
                   <SubmitButton className="btn btn-primary" pendingText="…">
                     Pausar
                   </SubmitButton>
                 </form>
               ) : (
-                <form action={timerCommand}>
+                <form action={timerCommand.bind(null, committee.code)}>
                   <input type="hidden" name="intent" value="resume" />
                   <SubmitButton className="btn btn-primary" pendingText="…">
                     Reanudar
@@ -101,14 +101,14 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
                 </form>
               )}
 
-              <form action={timerCommand}>
+              <form action={timerCommand.bind(null, committee.code)}>
                 <input type="hidden" name="intent" value="reset" />
                 <SubmitButton className="btn btn-quiet" pendingText="…">
                   Reiniciar a cero
                 </SubmitButton>
               </form>
 
-              <form action={timerCommand}>
+              <form action={timerCommand.bind(null, committee.code)}>
                 <input type="hidden" name="intent" value="mode" />
                 <input type="hidden" name="mode" value="countup" />
                 <SubmitButton className="btn btn-quiet" pendingText="…">
@@ -116,7 +116,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
                 </SubmitButton>
               </form>
 
-              <form action={timerCommand}>
+              <form action={timerCommand.bind(null, committee.code)}>
                 <input type="hidden" name="intent" value="mode" />
                 <input type="hidden" name="mode" value="countdown" />
                 <SubmitButton className="btn btn-quiet" pendingText="…">
@@ -125,7 +125,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
               </form>
             </div>
 
-            <form action={timerCommand} className="mt-5 flex flex-wrap items-end gap-2">
+            <form action={timerCommand.bind(null, committee.code)} className="mt-5 flex flex-wrap items-end gap-2">
               <input type="hidden" name="intent" value="speaker" />
               <div className="flex-1">
                 <label className="label" htmlFor="speaker">

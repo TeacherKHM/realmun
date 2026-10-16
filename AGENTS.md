@@ -33,6 +33,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 - **Login por comité**: una cuenta Supabase Auth por comité; la contraseña es compartida dentro del comité.
 - **Consola del comité** (`/comite/[code]`) con secciones: resumen, asistencia, cronómetro, sanciones, hojas de resolución, rúbrica, delegados y sesiones.
 - **Panel de dirección** (`/panel`): cuenta única de la dirección (presidente o encargado general) con la radiografía de los 4 comités en una sola vista. No puede abrirlo una cuenta de comité.
+- **Dirección con acceso total**: la misma cuenta entra a la consola de **cualquier** comité (asistencia incluida) y edita desde `/panel/comites` los nombres de comités, siglas, temas, colores y el nombre de cada encargado.
 - **Pantalla de TV** (`/vista-tv/[code]`): cronómetro gigante, comité, orador y marcador; sin login, sincronizada cada segundo.
 - **Sesiones múltiples**: la sesión activa vive en `committees.active_session_id` y define qué se ve en consola y TV.
 - **Rúbrica**: 4 criterios (1–10) definidos en `src/lib/types.ts` → `RUBRIC_CRITERIA`.
@@ -44,7 +45,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 | `src/app/page.tsx` | Portada con las placas |
 | `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité o por dirección |
 | `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
-| `src/app/panel/**` | Panel de dirección (layout con encabezado y tarjeta por comité) |
+| `src/app/panel/**` | Panel de dirección: `/panel` (radiografía) y `/panel/comites` (edita comités y encargados) |
 | `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
 | `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
 | `src/proxy.ts` | Protección de `/comite/*` y `/panel/*` y refresco de la sesión |
@@ -58,7 +59,9 @@ Notas de implementación:
 - **Datos**: todo pasa por server actions con el cliente Supabase ligado a la sesión del encargado (RLS real). Las mutaciones se validan en `src/lib/guard.ts` y refrescan la consola con `revalidateConsole`.
 - **Cronómetro**: estado en `timer_state` (una fila por comité). `ends_at` + `started_at` permiten que consola y TV calculen el tiempo con reloj de servidor, sin depender de latencia; `LiveTimer` avanza localmente cada 200 ms.
 - **TV**: el sondeo a `/api/tv/[code]` cada segundo trae cronómetro y marcador (la función `committee_tv_stats` es `security definer` y no expone motivos de sanción).
-- **Roles**: `profiles.role` es `'encargado'` (una cuenta por comité) o `'direccion'`. `src/lib/auth.ts` expone `requireSession()` (cualquier cuenta), `requireCommittee(code)` (solo su comité) y `requireDireccion()` (solo la dirección; a las demás las manda a su consola).
+- **Roles**: `profiles.role` es `'encargado'` (una cuenta por comité) o `'direccion'`. `src/lib/auth.ts` expone `requireSession()` (cualquier cuenta), `requireCommittee(code)` (solo su comité; **la dirección puede resolver cualquier `code`**) y `requireDireccion()` (solo la dirección; a las demás las manda a su consola).
+- **Comité destino de una mutación**: como la consola se puede abrir desde cuentas distintas, cada `<form>` de la consola ata el comité con `action={accion.bind(null, committee.code)}`; la action recibe `(code, formData)` y usa `guardCommittee(code)` (el propio comité para un encargado, cualquiera para la dirección). Nunca se confía en el comité del `profiles`.
+- **Acceso de la dirección a los comités**: la RPC `direccion_stats()` sigue siendo la vía de lectura global, pero para *entrar y escribir* la dirección usa la consola normal apoyada en las policies `*_direccion` (`public.is_direccion()`), que se **suman por OR** a las del comité sin reescribirlas.
 - **Panel de dirección**: la RPC `direccion_stats()` es `security definer`, recibe `auth.uid()` y **se niega a sí misma** si esa cuenta no tiene `role = 'direccion'` (así el RLS de las tablas, atado al comité, no estorba). Devuelve los 4 comités en un solo llamado. El panel se refresca solo cada 15 s con `AutoRefresh` + `router.refresh()`, sin recargar la página.
 - **Diseño**: no hay Tailwind config file; los tokens viven en `src/app/globals.css` (`@theme`). Tipografías: Instrument Serif (display), Public Sans (interfaz), Archivo (reloj). Clases propias: `.placard`, `.btn*`, `.panel`, `.field`, `.rail-link`, `.clock`.
 - `cacheComponents` se dejó **desactivado** a propósito: el panel es dinámico de punta a punta.
@@ -164,10 +167,45 @@ Detalles técnicos de la consulta: la verificación de rol va **dentro** de la f
 
 > Zona horaria: al probar en producción se vio que `formatTime`/`formatDateTime` renderizaban en **UTC** (Vercel) y no en la hora de San Luis. `src/lib/format.ts` ahora fija `timeZone: "America/Mexico_City"` en sus tres `Intl.DateTimeFormat`; esto también corrige las horas de sanciones y hojas en la consola, que estaban corridas 6 horas en producción.
 
+### Etapa 6 — La dirección entra y edita todos los comités (completada)
+
+La dirección ya no solo *ve* la radiografía: **entra a la consola de cualquier comité** (asistencia, cronómetro, sanciones, hojas, rúbrica, delegados y sesiones) y **edita el catálogo** (nombres de comité, sigla, tema, color y nombre del encargado).
+
+- **Migración `0007_direccion_acceso.sql`** (aplicada al proyecto remoto): `public.is_direccion()` (`security definer`, `execute` solo para `authenticated`) y policies `*_direccion` en `committees`, `profiles` y las 7 tablas por comité. Son **permisivas**: se suman por OR a las del comité, así que el encargado sigue encerrado en el suyo y la dirección no reescribe el RLS.
+- **Comité destino de cada mutación**: las acciones ahora reciben `(code, formData)`; los 32 formularios de la consola se atan con `action={accion.bind(null, committee.code)}` y `guardCommittee(code)` resuelve el comité (propio para el encargado, cualquiera para la dirección). Sin esto, la dirección habría escrito siempre en el comité de su `profiles`.
+- **`requireCommittee(code)`** acepta cualquier `code` para la dirección (404 si no existe); para un encargado sigue redirigiendo a su consola.
+- **Consola con voz de dirección**: el riel muestra «← Panel de dirección» y el encabezado una etiqueta «Vista de dirección» (`NavRail` gana `isDireccion`).
+- **Página `/panel/comites`** (nueva) + `src/app/actions/committees.ts` (`updateCommittee`, `updateEncargado`): un panel por comité para nombre/sigla/tema/color y el nombre del encargado; los cambios se reflejan en portada, consolas y TV. El panel gana pestañas («Radiografía» / «Comités y encargados») y cada tarjeta enlaza consola, asistencia, delegados y TV.
+
+Verificación (Chrome real, `puppeteer-core`, servidor local **y** producción):
+
+| Comprobación | Resultado |
+| --- | --- |
+| `/panel/comites` sin sesión → `/login?next=/panel/comites`, Dirección preseleccionada | OK |
+| La dirección entra y el panel ofrece las dos pestañas | OK |
+| La administración lista los 4 comités, cada uno con su campo de encargado | OK |
+| Cada tarjeta de la radiografía enlaza consola, asistencia, delegados y TV | OK |
+| La dirección abre la consola del comité 3 (no la manda a la suya) con etiqueta «Vista de dirección» y enlace al panel | OK |
+| La dirección registra asistencia en el comité 3 y **la fila queda en el comité 3** (no en el 1) | OK |
+| La dirección agrega y elimina un delegado en el comité 3 | OK |
+| La dirección cambia nombre, tema y encargado del comité 3 y la portada lo refleja | OK |
+| Restauración de los datos originales | OK |
+| El encargado del comité 2 no abre `/panel/comites` ni la consola del 3 | OK |
+| El encargado sigue agregando/eliminando delegados en **su** comité (regresión del `.bind`) | OK |
+| Flujo completo de consola (asistencia, cronómetro, TV, sanciones, rúbrica, hojas, delegados, sesiones) | OK |
+| Sin errores de JavaScript | OK |
+
+Se verificó en la base que la asistencia escrita por la dirección quedó en `comite-3` con `comite-1` en cero: el comité destino es el de la ruta, no el del `profiles`. Los datos de prueba (asistencia, delegados, nombre/acento del comité) se restauraron al terminar.
+
+**Desplegado a producción** (`vercel --prod`): `/` 200, `/login` 200, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200, y `/comite/comite-1`, `/panel`, `/panel/comites` con 307 a `/login?next=…` sin sesión. Las 25 comprobaciones de la dirección, las 24 del panel y las 10 de regresión (consola/TV/aislamiento) pasan contra `https://realmun.vercel.app`.
+
+> Ajuste: `is_direccion()` se dejó **sin** `execute` para `anon` (`revoke ... from public, anon`), a diferencia de `current_committee_id()` y `committee_tv_stats()`, que sí lo necesitan. Los avisos de Supabase quedan en el patrón `security definer` ya aceptado.
+
 ### Pendientes
 
-- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png` y `14-panel-direccion-movil.png`.
-- Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos).
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png`; de la administración, en el directorio temporal de pruebas (`16-panel-comites.png`, `17-direccion-asistencia.png`).
+- Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - Cambiar la contraseña por defecto de los comités **y de la dirección**.
 - Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
 - Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.
+- El directorio local `supabase/migrations/` no tiene las migraciones 0002–0005 (se aplicaron al remoto con otros nombres desde etapas anteriores). La base remota es la fuente de verdad; si se rehace el proyecto desde cero, hay que reconstruir 0002–0005 o volcar el esquema.

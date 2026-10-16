@@ -25,7 +25,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
 
       <div className="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
         <Panel title="Nueva sesión" description="La fecha es la del día en que se celebra.">
-          <form action={createSession} className="space-y-4">
+          <form action={createSession.bind(null, committee.code)} className="space-y-4">
             <div>
               <label className="label" htmlFor="title">
                 Nombre
@@ -86,7 +86,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
 
                     <div className="flex flex-wrap items-center gap-2">
                       {!isActive ? (
-                        <form action={setActiveSession}>
+                        <form action={setActiveSession.bind(null, committee.code)}>
                           <input type="hidden" name="session_id" value={session.id} />
                           <SubmitButton className="btn btn-quiet" pendingText="…">
                             Activar
@@ -101,7 +101,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
                         </Link>
                       )}
 
-                      <form action={updateSessionStatus}>
+                      <form action={updateSessionStatus.bind(null, committee.code)}>
                         <input type="hidden" name="session_id" value={session.id} />
                         <input
                           type="hidden"
@@ -113,7 +113,7 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
                         </SubmitButton>
                       </form>
 
-                      <form action={deleteSession}>
+                      <form action={deleteSession.bind(null, committee.code)}>
                         <input type="hidden" name="session_id" value={session.id} />
                         <SubmitButton className="btn btn-danger" pendingText="…">
                           Eliminar

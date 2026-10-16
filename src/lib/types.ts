@@ -15,6 +15,13 @@ export type Committee = {
   active_session_id: string | null;
 };
 
+export type ProfileRow = {
+  user_id: string;
+  committee_id: string;
+  display_name: string | null;
+  role: ProfileRole;
+};
+
 export type SessionRow = {
   id: string;
   committee_id: string;

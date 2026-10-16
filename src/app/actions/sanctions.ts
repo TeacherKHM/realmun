@@ -1,14 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 import type { SanctionType } from "@/lib/types";
 
 const TYPES: SanctionType[] = ["amonestacion", "advertencia", "disciplina"];
 
-export async function addSanction(formData: FormData) {
-  const { committee } = await guardSession();
+export async function addSanction(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
   const type = requireText(formData.get("type"), "tipo de sanción") as SanctionType;
   const reason = requireText(formData.get("reason"), "motivo");
@@ -28,8 +28,8 @@ export async function addSanction(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function deleteSanction(formData: FormData) {
-  const { committee } = await guardSession();
+export async function deleteSanction(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const id = requireText(formData.get("sanction_id"), "sanción");
 
   const supabase = await createClient();

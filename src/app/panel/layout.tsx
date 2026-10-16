@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
+import { PanelNav } from "@/components/PanelNav";
 import { requireDireccion } from "@/lib/auth";
 import { listCommittees } from "@/lib/data";
 import { SCHOOL_NAME } from "@/lib/committees";
@@ -29,6 +30,7 @@ export default async function DirectorPanelLayout({ children }: LayoutProps<"/pa
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <PanelNav />
             <p className="text-white/60">{displayName ?? email}</p>
             <form action={signOut}>
               <button

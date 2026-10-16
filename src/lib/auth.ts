@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { COMMITTEE_COLUMNS } from "@/lib/committees";
 import type { Committee, ProfileRole } from "@/lib/types";
 
 export type CommitteeSession = {
@@ -56,11 +57,30 @@ export async function requireSession(): Promise<CommitteeSession> {
   return session;
 }
 
-/** Sesión válida y perteneciente al comité de la ruta; si no, redirige. */
+/** Comité por su código de ruta (lo usa la dirección para entrar a cualquiera). */
+async function committeeByCode(code: string): Promise<Committee | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("committees")
+    .select(COMMITTEE_COLUMNS)
+    .eq("code", code)
+    .maybeSingle<Committee>();
+  return data ?? null;
+}
+
+/** Sesión válida y perteneciente al comité de la ruta; si no, redirige.
+ *  La dirección puede entrar a la consola de cualquier comité. */
 export async function requireCommittee(code: string): Promise<CommitteeSession> {
   const session = await requireSession();
-  if (session.committee.code !== code) redirect(`/comite/${session.committee.code}`);
-  return session;
+  if (session.committee.code === code) return session;
+
+  if (session.role === "direccion") {
+    const committee = await committeeByCode(code);
+    if (!committee) notFound();
+    return { ...session, committee };
+  }
+
+  redirect(`/comite/${session.committee.code}`);
 }
 
 /** Sesión de la dirección de RealMUN; a cualquier otra cuenta la manda a su comité. */

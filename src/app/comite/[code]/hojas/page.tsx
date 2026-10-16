@@ -44,7 +44,7 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
       ) : (
         <div className="grid gap-5 xl:grid-cols-[1fr_1.15fr]">
           <Panel title="Registrar entrega" description={`Se asigna a ${session.title}.`}>
-            <form action={addResolution} className="space-y-4">
+            <form action={addResolution.bind(null, committee.code)} className="space-y-4">
               <input type="hidden" name="session_id" value={session.id} />
 
               <div>
@@ -113,7 +113,7 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
                           {row.notes ? ` · ${row.notes}` : ""}
                         </p>
                       </div>
-                      <form action={deleteResolution}>
+                      <form action={deleteResolution.bind(null, committee.code)}>
                         <input type="hidden" name="resolution_id" value={row.id} />
                         <SubmitButton className="btn btn-danger" pendingText="…">
                           Quitar

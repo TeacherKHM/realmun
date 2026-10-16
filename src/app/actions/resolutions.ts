@@ -1,11 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 
-export async function addResolution(formData: FormData) {
-  const { committee } = await guardSession();
+export async function addResolution(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
   const sessionId = optionalText(formData.get("session_id"));
   const notes = optionalText(formData.get("notes"));
@@ -34,8 +34,8 @@ export async function addResolution(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function deleteResolution(formData: FormData) {
-  const { committee } = await guardSession();
+export async function deleteResolution(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const id = requireText(formData.get("resolution_id"), "hoja de resolución");
 
   const supabase = await createClient();

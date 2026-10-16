@@ -18,3 +18,6 @@ export function direccionEmail() {
 
 export const SCHOOL_NAME = "Instituto Real de San Luis";
 export const EVENT_NAME = "RealMUN";
+
+/** Columnas del catálogo de comités (las usan auth.ts y data.ts). */
+export const COMMITTEE_COLUMNS = "id, code, sigla, name, topic, accent, sort_order, active_session_id";

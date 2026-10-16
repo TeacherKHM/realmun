@@ -111,7 +111,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
           <LiveTimer state={timer} serverNow={serverNow} variant="console" />
 
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <form action={timerCommand}>
+            <form action={timerCommand.bind(null, committee.code)}>
               <input type="hidden" name="intent" value="start" />
               <input type="hidden" name="mode" value="countdown" />
               <input type="hidden" name="seconds" value={60} />
@@ -120,7 +120,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
                 1:00
               </SubmitButton>
             </form>
-            <form action={timerCommand}>
+            <form action={timerCommand.bind(null, committee.code)}>
               <input type="hidden" name="intent" value="start" />
               <input type="hidden" name="mode" value="countdown" />
               <input type="hidden" name="seconds" value={120} />
@@ -129,7 +129,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
                 2:00
               </SubmitButton>
             </form>
-            <form action={timerCommand}>
+            <form action={timerCommand.bind(null, committee.code)}>
               <input type="hidden" name="intent" value="start" />
               <input type="hidden" name="mode" value="countdown" />
               <input type="hidden" name="seconds" value={300} />
@@ -140,14 +140,14 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
             </form>
 
             {timer?.running ? (
-              <form action={timerCommand}>
+              <form action={timerCommand.bind(null, committee.code)}>
                 <input type="hidden" name="intent" value="pause" />
                 <SubmitButton className="btn btn-primary" pendingText="…">
                   Pausar
                 </SubmitButton>
               </form>
             ) : (
-              <form action={timerCommand}>
+              <form action={timerCommand.bind(null, committee.code)}>
                 <input type="hidden" name="intent" value="resume" />
                 <SubmitButton className="btn btn-primary" pendingText="…">
                   Reanudar
@@ -155,7 +155,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               </form>
             )}
 
-            <form action={timerCommand}>
+            <form action={timerCommand.bind(null, committee.code)}>
               <input type="hidden" name="intent" value="reset" />
               <SubmitButton className="btn btn-quiet" pendingText="…">
                 Reiniciar

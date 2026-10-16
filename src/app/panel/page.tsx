@@ -146,7 +146,6 @@ function CommitteeCard({
           ? `${session.title} · ${formatShortDate(session.date)}`
           : "Este comité todavía no tiene una sesión activa."}
       </p>
-
       <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         {timer && (timer.running || timer.remaining_ms !== null || timer.elapsed_ms !== null) ? (
           <LiveTimer state={timer} serverNow={serverNow} compact />
@@ -213,17 +212,29 @@ function CommitteeCard({
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
-        <Link
-          href={`/vista-tv/${committee.code}`}
-          target="_blank"
-          className="text-sm font-semibold text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-        >
-          Ver pantalla de TV
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <Link href={`/comite/${committee.code}`} className="btn btn-primary">
+          Abrir consola
         </Link>
-        <span className="text-xs text-muted">
-          {pluralize(committee.sessions_total, "sesión registrada", "sesiones registradas")}
-        </span>
+        <Link href={`/comite/${committee.code}/asistencia`} className="btn btn-quiet">
+          Asistencia
+        </Link>
+        <Link href={`/comite/${committee.code}/delegados`} className="btn btn-quiet">
+          Delegados
+        </Link>
+        <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet">
+          TV
+        </Link>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted">
+        <Link
+          href={`/panel/comites#comite-${committee.code}`}
+          className="underline decoration-line underline-offset-4 hover:decoration-ink"
+        >
+          Editar nombre del comité y del encargado
+        </Link>
+        <span>{pluralize(committee.sessions_total, "sesión registrada", "sesiones registradas")}</span>
       </div>
     </article>
   );

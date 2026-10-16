@@ -1,14 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 import type { AttendanceStatus } from "@/lib/types";
 
 const VALID: AttendanceStatus[] = ["presente", "ausente", "justificado", "retardo"];
 
-export async function setAttendance(formData: FormData) {
-  const { committee } = await guardSession();
+export async function setAttendance(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
   const status = requireText(formData.get("status"), "estado") as AttendanceStatus;
@@ -32,8 +32,8 @@ export async function setAttendance(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function markAllPresent(formData: FormData) {
-  const { committee } = await guardSession();
+export async function markAllPresent(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
 
   const supabase = await createClient();
@@ -61,8 +61,8 @@ export async function markAllPresent(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function clearAttendance(formData: FormData) {
-  const { committee } = await guardSession();
+export async function clearAttendance(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
 
   const supabase = await createClient();

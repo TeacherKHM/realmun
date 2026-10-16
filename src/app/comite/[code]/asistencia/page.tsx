@@ -29,13 +29,13 @@ export default async function AttendancePage({ params }: PageProps<"/comite/[cod
         actions={
           session ? (
             <>
-              <form action={markAllPresent}>
+              <form action={markAllPresent.bind(null, committee.code)}>
                 <input type="hidden" name="session_id" value={session.id} />
                 <SubmitButton className="btn btn-quiet" pendingText="Marcando…">
                   Marcar presentes a quienes faltan
                 </SubmitButton>
               </form>
-              <form action={clearAttendance}>
+              <form action={clearAttendance.bind(null, committee.code)}>
                 <input type="hidden" name="session_id" value={session.id} />
                 <SubmitButton className="btn btn-danger" pendingText="Limpiando…">
                   Limpiar registro
@@ -46,16 +46,18 @@ export default async function AttendancePage({ params }: PageProps<"/comite/[cod
         }
       />
 
-      {!session ? <NoSession code={committee.code} /> : <AttendanceList committeeId={committee.id} sessionId={session.id} />}
+      {!session ? <NoSession code={committee.code} /> : <AttendanceList committeeId={committee.id} committeeCode={committee.code} sessionId={session.id} />}
     </>
   );
 }
 
 async function AttendanceList({
   committeeId,
+  committeeCode,
   sessionId,
 }: {
   committeeId: string;
+  committeeCode: string;
   sessionId: string;
 }) {
   const [delegates, attendance] = await Promise.all([
@@ -99,7 +101,7 @@ async function AttendanceList({
                 </p>
               </div>
 
-              <form action={setAttendance} className="flex flex-wrap items-center gap-2">
+              <form action={setAttendance.bind(null, committeeCode)} className="flex flex-wrap items-center gap-2">
                 <input type="hidden" name="session_id" value={sessionId} />
                 <input type="hidden" name="delegate_id" value={delegate.id} />
                 {ATTENDANCE_ORDER.map((status) => {

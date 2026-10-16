@@ -1,12 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 import { RUBRIC_CRITERIA, RUBRIC_SCALE, type RubricScore } from "@/lib/types";
 
-export async function saveRubric(formData: FormData) {
-  const { committee } = await guardSession();
+export async function saveRubric(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
 
@@ -35,8 +35,8 @@ export async function saveRubric(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function clearRubric(formData: FormData) {
-  const { committee } = await guardSession();
+export async function clearRubric(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
 

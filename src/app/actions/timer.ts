@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireInt } from "@/lib/guard";
+import { guardCommittee, optionalText, requireInt } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 import type { TimerMode, TimerState } from "@/lib/types";
 
@@ -41,8 +41,8 @@ async function currentTimer(committeeId: string): Promise<TimerState | null> {
  * Un solo punto de entrada para el cronómetro, con el campo oculto `intent`:
  * start | pause | resume | reset | speaker | mode
  */
-export async function timerCommand(formData: FormData) {
-  const { committee } = await guardSession();
+export async function timerCommand(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const intent = String(formData.get("intent") ?? "");
   const now = Date.now();
   const state = await currentTimer(committee.id);

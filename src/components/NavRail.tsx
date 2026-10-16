@@ -8,6 +8,7 @@ type Props = {
   code: string;
   sigla: string;
   accent: string;
+  isDireccion?: boolean;
 };
 
 const SECTIONS = [
@@ -21,7 +22,7 @@ const SECTIONS = [
   { slug: "sesiones", label: "Sesiones" },
 ];
 
-export function NavRail({ code, sigla, accent }: Props) {
+export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
   const pathname = usePathname();
   const base = `/comite/${code}`;
 
@@ -39,6 +40,14 @@ export function NavRail({ code, sigla, accent }: Props) {
           />
           {sigla}
         </p>
+        {isDireccion ? (
+          <Link
+            href="/panel"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-control border border-white/20 px-2.5 py-1 text-xs text-white/80 hover:border-white/50 hover:text-white"
+          >
+            ← Panel de dirección
+          </Link>
+        ) : null}
       </div>
 
       <nav className="flex-1 py-3" aria-label="Secciones del comité">

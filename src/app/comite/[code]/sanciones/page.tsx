@@ -48,7 +48,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
       ) : (
         <div className="grid gap-5 xl:grid-cols-[1fr_1.15fr]">
           <Panel title="Nueva sanción" description={`Se registra en ${session.title}.`}>
-            <form action={addSanction} className="space-y-4">
+            <form action={addSanction.bind(null, committee.code)} className="space-y-4">
               <input type="hidden" name="session_id" value={session.id} />
 
               <div>
@@ -132,7 +132,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                       <span className={`rounded-chip border px-2 py-0.5 text-xs ${TYPE_STYLE[row.type]}`}>
                         {SANCTION_LABELS[row.type]}
                       </span>
-                      <form action={deleteSanction}>
+                      <form action={deleteSanction.bind(null, committee.code)}>
                         <input type="hidden" name="sanction_id" value={row.id} />
                         <SubmitButton className="btn btn-danger" pendingText="…">
                           Quitar

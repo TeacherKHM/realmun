@@ -1,18 +1,18 @@
 import { requireCommittee } from "@/lib/auth";
+import { COMMITTEE_COLUMNS } from "@/lib/committees";
 import { createClient } from "@/lib/supabase/server";
 import type {
   AttendanceRow,
   Committee,
   Delegate,
   DireccionSnapshot,
+  ProfileRow,
   ResolutionRow,
   RubricRow,
   SanctionRow,
   SessionRow,
   TimerState,
 } from "@/lib/types";
-
-const COMMITTEE_COLUMNS = "id, code, sigla, name, topic, accent, sort_order, active_session_id";
 
 export async function listCommittees(): Promise<Committee[]> {
   const supabase = await createClient();
@@ -31,6 +31,20 @@ export async function getCommittee(code: string): Promise<Committee | null> {
     .eq("code", code)
     .maybeSingle<Committee>();
   return data ?? null;
+}
+
+/**
+ * Cuentas de la app (una por comité + la dirección). Solo la dirección las ve
+ * todas: el RLS de `profiles` deja a cada encargado con su propia fila.
+ */
+export async function listProfiles(): Promise<ProfileRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("user_id, committee_id, display_name, role")
+    .order("role", { ascending: true })
+    .order("committee_id", { ascending: true });
+  return (data ?? []) as ProfileRow[];
 }
 
 /**

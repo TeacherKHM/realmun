@@ -67,10 +67,12 @@ Cuenta única del presidente / encargado general. Contraseña inicial: **`direcc
 
 | Rol | Correo | Ruta | `profiles.role` |
 | --- | --- | --- | --- |
-| Dirección | `direccion@realmun.mx` | `/panel` | `direccion` |
+| Dirección | `direccion@realmun.mx` | `/panel` y `/panel/comites` | `direccion` |
 
 - Ve **todos** los comités en una sola vista (sesión, delegados en sala, sanciones, hojas y rúbrica) y se refresca solo cada 15 s.
-- Un encargado de comité **no** puede abrir `/panel`: la app lo regresa a su consola y la RPC `direccion_stats()` lo rechaza.
+- **Entra a la consola de cualquier comité** (`/comite/<code>`) con la misma cuenta: atiende asistencia, cronómetro, sanciones, hojas, rúbrica, delegados y sesiones en los cuatro. El riel muestra «← Panel de dirección» y el encabezado una etiqueta «Vista de dirección».
+- **Edita el catálogo** en `/panel/comites`: nombre, sigla, tema y color de cada comité, más el nombre del encargado. La portada, las consolas y la TV lo reflejan al guardar.
+- Un encargado de comité **no** puede abrir `/panel` ni la consola de otro comité: la app lo regresa a la suya, la RPC `direccion_stats()` lo rechaza y el RLS no le deja escribir fuera.
 - La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
 - Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
 
@@ -86,6 +88,7 @@ where email = '<code>@realmun.mx';
 
 - Consola del encargado: `https://realmun.vercel.app/comite/comite-1`
 - Panel de dirección (presidente): `https://realmun.vercel.app/panel`
+- Comités y encargados (dirección): `https://realmun.vercel.app/panel/comites`
 - Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
 - Marcador público de la TV: `GET /api/tv/comite-1` (sondeo cada segundo)
 
@@ -107,8 +110,10 @@ Funciones y políticas:
 
 - `public.current_committee_id()` — comité del usuario autenticado (usada por todas las policies).
 - `public.committee_tv_stats(text)` — marcador público de la TV (security definer, sin motivos de sanción).
+- `public.is_direccion()` — ¿la cuenta es de la dirección? (security definer, `execute` solo para `authenticated`; la usan las policies de dirección).
 - `public.direccion_stats()` — radiografía de los 4 comités para `/panel` (security definer; se niega si la cuenta no tiene `role = 'direccion'`; `execute` solo para `authenticated`).
 - Policies: catálogo de comités público; `timer_state` de lectura pública y escritura del propio comité; todo lo demás solo el comité dueño. `profiles` solo la fila propia.
+- Policies `*_direccion` (se **suman** por OR a las del comité, no las sustituyen): `committees`, `profiles` y las 7 tablas por comité dejan a la dirección leer y escribir en cualquiera. La dirección queda encerrada a las demás cuentas.
 - Realtime activado en `timer_state` (la TV usa sondeo HTTP, no realtime, para reducir fallos).
 
 ## Comandos útiles
@@ -125,7 +130,9 @@ vercel --prod                    # publicar (el proyecto ya está vinculado)
 - Las **hojas de resolución** se registran a mano por el encargado (control de entrega), no hay subida de archivos.
 - La **rúbrica** son 4 criterios configurables en `src/lib/types.ts`; escala 1–10, promedio calculado en el cliente del servidor (`rubricAverage`).
 - La **TV no se autentica**; solo ve datos públicos por la función `committee_tv_stats` y `timer_state`.
-- El nombre de cada comité, sigla, tema y color se edita directo en la tabla `committees` (no hay UI de administración todavía).
+- El **nombre de cada comité, sigla, tema y color**, y el **nombre del encargado**, se editan desde `/panel/comites` (solo la dirección). Antes se hacía directo en la tabla `committees`.
 - Las **cuentas de Auth creadas por SQL** deben dejar en `''` (no `NULL`) `recovery_token`, `email_change`, `email_change_token_new/current`, `phone_change*` y `reauthentication_token`: con `NULL` GoTrue responde `500 Database error querying schema` al iniciar sesión.
 - Las **horas y fechas se formatean en `America/Mexico_City`** (`src/lib/format.ts`): Vercel corre en UTC y, sin fijar la zona, las horas salían corridas 6 horas.
+- Las **server actions de la consola reciben el código del comité** como primer argumento: cada `<form>` lo ata con `action={accion.bind(null, committee.code)}` y `guardCommittee(code)` resuelve el comité destino (el propio para un encargado, cualquiera para la dirección). Así la dirección no escribe por error en el comité de su `profiles`. Si algún formulario nuevo olvida el `.bind`, para la dirección caería en su propio comité: hay que atarlo siempre.
+- El **proyecto de Supabase es el mismo para local y producción**: las pruebas de punta a punta contra `https://realmun.vercel.app` tocan los datos reales. Las pruebas que mutan (asistencia, delegados, nombres) se restauran solas o se limpian a mano al terminar.
 - El agente que construyó esto **no puede ver imágenes**: cualquier revisión visual la debe hacer una persona.

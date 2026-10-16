@@ -1,11 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 
-export async function createSession(formData: FormData) {
-  const { committee } = await guardSession();
+export async function createSession(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const title = requireText(formData.get("title"), "nombre de la sesión");
   const sessionDate = optionalText(formData.get("session_date")) ?? new Date().toISOString().slice(0, 10);
 
@@ -31,8 +31,8 @@ export async function createSession(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function setActiveSession(formData: FormData) {
-  const { committee } = await guardSession();
+export async function setActiveSession(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
 
   const supabase = await createClient();
@@ -46,8 +46,8 @@ export async function setActiveSession(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function updateSessionStatus(formData: FormData) {
-  const { committee } = await guardSession();
+export async function updateSessionStatus(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
   const status = requireText(formData.get("status"), "estado") === "finalizada" ? "finalizada" : "activa";
 
@@ -63,8 +63,8 @@ export async function updateSessionStatus(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function deleteSession(formData: FormData) {
-  const { committee } = await guardSession();
+export async function deleteSession(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
 
   const supabase = await createClient();

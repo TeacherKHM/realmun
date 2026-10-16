@@ -1,11 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { guardSession, optionalText, requireInt, requireText } from "@/lib/guard";
+import { guardCommittee, optionalText, requireInt, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
 
-export async function createDelegate(formData: FormData) {
-  const { committee } = await guardSession();
+export async function createDelegate(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const name = requireText(formData.get("name"), "nombre del delegado");
   const delegation = optionalText(formData.get("delegation"));
 
@@ -21,8 +21,8 @@ export async function createDelegate(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function updateDelegate(formData: FormData) {
-  const { committee } = await guardSession();
+export async function updateDelegate(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const id = requireText(formData.get("delegate_id"), "delegado");
 
   const supabase = await createClient();
@@ -41,8 +41,8 @@ export async function updateDelegate(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function toggleDelegate(formData: FormData) {
-  const { committee } = await guardSession();
+export async function toggleDelegate(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const id = requireText(formData.get("delegate_id"), "delegado");
   const active = formData.get("active") === "true";
 
@@ -57,8 +57,8 @@ export async function toggleDelegate(formData: FormData) {
   revalidateConsole(committee.code);
 }
 
-export async function deleteDelegate(formData: FormData) {
-  const { committee } = await guardSession();
+export async function deleteDelegate(code: string, formData: FormData) {
+  const { committee } = await guardCommittee(code);
   const id = requireText(formData.get("delegate_id"), "delegado");
 
   const supabase = await createClient();

@@ -13,14 +13,20 @@ export default async function CommitteeLayout({
   params,
 }: LayoutProps<"/comite/[code]">) {
   const { code } = await params;
-  const { committee, displayName } = await requireCommittee(code);
+  const { committee, displayName, role } = await requireCommittee(code);
   const sessions = await listSessions(committee.id);
   const active = sessions.find((item) => item.id === committee.active_session_id) ?? null;
+  const isDireccion = role === "direccion";
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
       <aside className="lg:sticky lg:top-0 lg:h-dvh">
-        <NavRail code={committee.code} sigla={committee.sigla} accent={committee.accent} />
+        <NavRail
+          code={committee.code}
+          sigla={committee.sigla}
+          accent={committee.accent}
+          isDireccion={isDireccion}
+        />
       </aside>
 
       <div className="flex min-h-dvh flex-col">
@@ -34,11 +40,16 @@ export default async function CommitteeLayout({
               <p className="mt-1 text-sm text-muted">
                 {committee.name}
                 {committee.topic ? ` · ${committee.topic}` : ""}
-                {displayName ? ` · ${displayName}` : ""}
+                {!isDireccion && displayName ? ` · ${displayName}` : ""}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {isDireccion ? (
+                <span className="rounded-chip border border-flag/40 px-2 py-0.5 text-xs text-plenary">
+                  Vista de dirección
+                </span>
+              ) : null}
               <Link
                 href={`/vista-tv/${committee.code}`}
                 target="_blank"
@@ -52,7 +63,7 @@ export default async function CommitteeLayout({
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line-soft pt-3">
             <span className="text-xs font-semibold text-muted">Sesión en curso</span>
             {sessions.length > 0 ? (
-              <form action={setActiveSession} className="flex flex-wrap items-center gap-2">
+              <form action={setActiveSession.bind(null, committee.code)} className="flex flex-wrap items-center gap-2">
                 <select name="session_id" defaultValue={active?.id ?? ""} className="field w-auto">
                   {sessions.map((item) => (
                     <option key={item.id} value={item.id}>

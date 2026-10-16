@@ -26,7 +26,7 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
 
       <div className="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
         <Panel title="Agregar delegado" description="Nombre del alumno y delegación que representa.">
-          <form action={createDelegate} className="space-y-4">
+          <form action={createDelegate.bind(null, committee.code)} className="space-y-4">
             <div>
               <label className="label" htmlFor="name">
                 Nombre
@@ -80,7 +80,7 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
                     </summary>
 
                     <div className="border-t border-line-soft px-4 py-4">
-                      <form action={updateDelegate} className="grid gap-3 sm:grid-cols-2">
+                      <form action={updateDelegate.bind(null, committee.code)} className="grid gap-3 sm:grid-cols-2">
                         <input type="hidden" name="delegate_id" value={delegate.id} />
                         <div>
                           <label className="label" htmlFor={`name-${delegate.id}`}>
@@ -136,14 +136,14 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
                       </form>
 
                       <div className="mt-3 flex flex-wrap gap-2 border-t border-line-soft pt-3">
-                        <form action={toggleDelegate}>
+                        <form action={toggleDelegate.bind(null, committee.code)}>
                           <input type="hidden" name="delegate_id" value={delegate.id} />
                           <input type="hidden" name="active" value={delegate.active ? "false" : "true"} />
                           <SubmitButton className="btn btn-quiet" pendingText="…">
                             {delegate.active ? "Marcar inactivo" : "Marcar activo"}
                           </SubmitButton>
                         </form>
-                        <form action={deleteDelegate}>
+                        <form action={deleteDelegate.bind(null, committee.code)}>
                           <input type="hidden" name="delegate_id" value={delegate.id} />
                           <SubmitButton className="btn btn-danger" pendingText="…">
                             Eliminar delegado

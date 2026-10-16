@@ -95,7 +95,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
               </summary>
 
               <div className="border-t border-line-soft px-5 py-5">
-                <form action={saveRubric}>
+                <form action={saveRubric.bind(null, committee.code)}>
                   <input type="hidden" name="session_id" value={session.id} />
                   <input type="hidden" name="delegate_id" value={delegate.id} />
 
@@ -139,7 +139,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
                 </form>
 
                 {row ? (
-                  <form action={clearRubric} className="mt-3">
+                  <form action={clearRubric.bind(null, committee.code)} className="mt-3">
                     <input type="hidden" name="session_id" value={session.id} />
                     <input type="hidden" name="delegate_id" value={delegate.id} />
                     <SubmitButton className="btn btn-danger" pendingText="…">
