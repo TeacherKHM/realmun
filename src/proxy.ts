@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-/** Mantiene la sesión al día y cierra el paso a /comite/* sin autenticación. */
+/** Mantiene la sesión al día y cierra el paso a las zonas privadas sin autenticación. */
+const PRIVATE_PREFIXES = ["/comite", "/panel"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -28,7 +30,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && request.nextUrl.pathname.startsWith("/comite")) {
+  if (!user && PRIVATE_PREFIXES.some((prefix) => request.nextUrl.pathname.startsWith(prefix))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = `next=${encodeURIComponent(request.nextUrl.pathname)}`;
@@ -39,5 +41,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/comite/:path*"],
+  matcher: ["/comite/:path*", "/panel/:path*"],
 };

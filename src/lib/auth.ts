@@ -1,17 +1,19 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Committee } from "@/lib/types";
+import type { Committee, ProfileRole } from "@/lib/types";
 
 export type CommitteeSession = {
   userId: string;
   email: string | null;
   displayName: string | null;
+  role: ProfileRole;
   committee: Committee;
 };
 
 type ProfileJoin = {
   committee_id: string;
   display_name: string | null;
+  role: string | null;
   committees: Committee | Committee[] | null;
 };
 
@@ -31,7 +33,7 @@ export async function getSession(): Promise<CommitteeSession | null> {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "committee_id, display_name, committees(id, code, sigla, name, topic, accent, sort_order, active_session_id)",
+      "committee_id, display_name, role, committees(id, code, sigla, name, topic, accent, sort_order, active_session_id)",
     )
     .eq("user_id", user.id)
     .maybeSingle<ProfileJoin>();
@@ -43,6 +45,7 @@ export async function getSession(): Promise<CommitteeSession | null> {
     userId: user.id,
     email: user.email ?? null,
     displayName: data?.display_name ?? null,
+    role: data?.role === "direccion" ? "direccion" : "encargado",
     committee,
   };
 }
@@ -57,5 +60,12 @@ export async function requireSession(): Promise<CommitteeSession> {
 export async function requireCommittee(code: string): Promise<CommitteeSession> {
   const session = await requireSession();
   if (session.committee.code !== code) redirect(`/comite/${session.committee.code}`);
+  return session;
+}
+
+/** Sesión de la dirección de RealMUN; a cualquier otra cuenta la manda a su comité. */
+export async function requireDireccion(): Promise<CommitteeSession> {
+  const session = await requireSession();
+  if (session.role !== "direccion") redirect(`/comite/${session.committee.code}`);
   return session;
 }

@@ -1,19 +1,26 @@
+// Toda la app es de San Luis Potosí: fijamos la zona para que las horas no
+// dependan de la zona del servidor (Vercel corre en UTC).
+const TIME_ZONE = "America/Mexico_City";
+
 const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   weekday: "long",
   day: "numeric",
   month: "long",
   year: "numeric",
+  timeZone: TIME_ZONE,
 });
 
 const shortDateFormatter = new Intl.DateTimeFormat("es-MX", {
   day: "2-digit",
   month: "short",
   year: "numeric",
+  timeZone: TIME_ZONE,
 });
 
 const timeFormatter = new Intl.DateTimeFormat("es-MX", {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: TIME_ZONE,
 });
 
 export function formatLongDate(value: Date | string = new Date()) {

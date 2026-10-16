@@ -61,6 +61,19 @@ Contraseña inicial de los cuatro comités: **`comite-2026`** (cambiar antes del
 | COM III | `comite-3@realmun.mx` | `/comite/comite-3` |
 | COM IV | `comite-4@realmun.mx` | `/comite/comite-4` |
 
+## Acceso de la dirección
+
+Cuenta única del presidente / encargado general. Contraseña inicial: **`direccion-2026`** (cambiar antes del evento).
+
+| Rol | Correo | Ruta | `profiles.role` |
+| --- | --- | --- | --- |
+| Dirección | `direccion@realmun.mx` | `/panel` | `direccion` |
+
+- Ve **todos** los comités en una sola vista (sesión, delegados en sala, sanciones, hojas y rúbrica) y se refresca solo cada 15 s.
+- Un encargado de comité **no** puede abrir `/panel`: la app lo regresa a su consola y la RPC `direccion_stats()` lo rechaza.
+- La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
+- Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
+
 Cambiar la contraseña (SQL en el proyecto, reemplazar `<code>`):
 
 ```sql
@@ -72,6 +85,7 @@ where email = '<code>@realmun.mx';
 ## Pantallas para el evento
 
 - Consola del encargado: `https://realmun.vercel.app/comite/comite-1`
+- Panel de dirección (presidente): `https://realmun.vercel.app/panel`
 - Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
 - Marcador público de la TV: `GET /api/tv/comite-1` (sondeo cada segundo)
 
@@ -80,7 +94,7 @@ where email = '<code>@realmun.mx';
 | Tabla | Contenido |
 | --- | --- |
 | `committees` | 4 comités: `code`, `sigla`, `name`, `topic`, `accent`, `active_session_id` |
-| `profiles` | Vincula `auth.users` → comité (una cuenta por comité) |
+| `profiles` | Vincula `auth.users` → comité (una cuenta por comité); `role` = `encargado` \| `direccion` |
 | `sessions` | Sesiones con fecha y estado; la activa se guarda en `committees.active_session_id` |
 | `delegates` | Delegados del comité (`name`, `delegation`, `active`, `sort_order`) |
 | `attendance` | Único par (sesión, delegado): `presente` / `retardo` / `justificado` / `ausente` |
@@ -93,6 +107,7 @@ Funciones y políticas:
 
 - `public.current_committee_id()` — comité del usuario autenticado (usada por todas las policies).
 - `public.committee_tv_stats(text)` — marcador público de la TV (security definer, sin motivos de sanción).
+- `public.direccion_stats()` — radiografía de los 4 comités para `/panel` (security definer; se niega si la cuenta no tiene `role = 'direccion'`; `execute` solo para `authenticated`).
 - Policies: catálogo de comités público; `timer_state` de lectura pública y escritura del propio comité; todo lo demás solo el comité dueño. `profiles` solo la fila propia.
 - Realtime activado en `timer_state` (la TV usa sondeo HTTP, no realtime, para reducir fallos).
 
@@ -111,4 +126,6 @@ vercel --prod                    # publicar (el proyecto ya está vinculado)
 - La **rúbrica** son 4 criterios configurables en `src/lib/types.ts`; escala 1–10, promedio calculado en el cliente del servidor (`rubricAverage`).
 - La **TV no se autentica**; solo ve datos públicos por la función `committee_tv_stats` y `timer_state`.
 - El nombre de cada comité, sigla, tema y color se edita directo en la tabla `committees` (no hay UI de administración todavía).
+- Las **cuentas de Auth creadas por SQL** deben dejar en `''` (no `NULL`) `recovery_token`, `email_change`, `email_change_token_new/current`, `phone_change*` y `reauthentication_token`: con `NULL` GoTrue responde `500 Database error querying schema` al iniciar sesión.
+- Las **horas y fechas se formatean en `America/Mexico_City`** (`src/lib/format.ts`): Vercel corre en UTC y, sin fijar la zona, las horas salían corridas 6 horas.
 - El agente que construyó esto **no puede ver imágenes**: cualquier revisión visual la debe hacer una persona.

@@ -4,6 +4,7 @@ import type {
   AttendanceRow,
   Committee,
   Delegate,
+  DireccionSnapshot,
   ResolutionRow,
   RubricRow,
   SanctionRow,
@@ -121,6 +122,22 @@ export async function getRubricMap(sessionId: string): Promise<Record<string, Ru
   const map: Record<string, RubricRow> = {};
   for (const row of (data ?? []) as RubricRow[]) map[row.delegate_id] = row;
   return map;
+}
+
+/**
+ * Radiografía de todos los comités para el panel de dirección.
+ * La RPC es security definer y solo responde si la cuenta tiene rol 'direccion'.
+ */
+export async function loadDireccionSnapshot(): Promise<DireccionSnapshot> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("direccion_stats");
+  if (error) throw new Error(error.message);
+
+  const raw = (data ?? {}) as Partial<DireccionSnapshot>;
+  return {
+    now: raw.now ?? new Date().toISOString(),
+    committees: raw.committees ?? [],
+  };
 }
 
 export async function getTimerState(committeeId: string): Promise<TimerState | null> {

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { signIn, type LoginState } from "@/app/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
+import { DIRECCION_CODE } from "@/lib/committees";
 import type { Committee } from "@/lib/types";
 
 type Props = {
@@ -41,6 +42,24 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
             </label>
           ))}
         </div>
+
+        <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-control border border-line bg-paper-warm px-3 py-3 text-sm has-checked:border-ink has-checked:bg-white">
+          <input
+            type="radio"
+            name="committee"
+            value={DIRECCION_CODE}
+            defaultChecked={defaultCommittee === DIRECCION_CODE}
+            required
+            className="size-4 accent-ink"
+          />
+          <span aria-hidden className="h-8 w-1 bg-ink" />
+          <span>
+            <span className="block font-semibold">Dirección</span>
+            <span className="block text-xs text-muted">
+              Presidente o encargado general: ve todos los comités
+            </span>
+          </span>
+        </label>
       </fieldset>
 
       <div className="mt-6">

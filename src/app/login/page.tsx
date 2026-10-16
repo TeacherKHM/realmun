@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/LoginForm";
 import { listCommittees } from "@/lib/data";
-import { SCHOOL_NAME } from "@/lib/committees";
+import { DIRECCION_CODE, SCHOOL_NAME } from "@/lib/committees";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       ? params.comite
       : nextParam.startsWith("/comite/")
         ? nextParam.replace("/comite/", "")
-        : undefined;
+        : nextParam.startsWith("/panel")
+          ? DIRECCION_CODE
+          : undefined;
 
   return (
     <main className="flex min-h-dvh flex-col bg-paper">
@@ -29,8 +31,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <div className="w-full max-w-xl rounded-card border border-line bg-paper-warm px-6 py-8 sm:px-9">
           <h1 className="text-3xl">Acceso de encargados</h1>
           <p className="mt-2 text-sm text-muted">
-            Cada comité tiene su contraseña. Al entrar se abre la consola de ese comité:
-            cronómetro, asistencia, sanciones, hojas y rúbrica.
+            Cada comité tiene su contraseña y se abre su consola: cronómetro, asistencia,
+            sanciones, hojas y rúbrica. La dirección entra con su propia cuenta para ver
+            todos los comités.
           </p>
 
           {committees.length === 0 ? (

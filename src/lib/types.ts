@@ -1,4 +1,6 @@
 export type AttendanceStatus = "presente" | "ausente" | "justificado" | "retardo";
+/** Rol de la cuenta: una por comité ('encargado') o la vista global ('direccion'). */
+export type ProfileRole = "encargado" | "direccion";
 export type SanctionType = "amonestacion" | "advertencia" | "disciplina";
 export type TimerMode = "countdown" | "countup";
 
@@ -87,6 +89,33 @@ export type TimerState = {
   started_at: string | null;
   elapsed_ms: number | null;
   updated_at: string;
+};
+
+/** Radiografía de un comité para el panel de dirección (viene de direccion_stats()). */
+export type DireccionCommittee = {
+  code: string;
+  sigla: string;
+  name: string;
+  topic: string | null;
+  accent: string;
+  session: {
+    id: string;
+    title: string;
+    date: string;
+    status: "activa" | "finalizada";
+  } | null;
+  sessions_total: number;
+  delegates_total: number;
+  presence: Partial<Record<AttendanceStatus, number>>;
+  sanctions: Partial<Record<SanctionType, number>>;
+  resolutions: number;
+  rubric: { evaluated: number; average: number | null };
+  timer: TimerState | null;
+};
+
+export type DireccionSnapshot = {
+  now: string;
+  committees: DireccionCommittee[];
 };
 
 /** Criterios de la rúbrica — editable en este archivo. */

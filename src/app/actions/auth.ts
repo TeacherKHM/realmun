@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { committeeEmail } from "@/lib/committees";
+import { committeeEmail, DIRECCION_CODE, direccionEmail } from "@/lib/committees";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { error: string | null };
@@ -15,17 +15,20 @@ export async function signIn(_prev: LoginState, formData: FormData): Promise<Log
     return { error: "Elige un comité y escribe la contraseña." };
   }
 
+  const isDireccion = code === DIRECCION_CODE;
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
-    email: committeeEmail(code),
+    email: isDireccion ? direccionEmail() : committeeEmail(code),
     password,
   });
 
   if (error) {
-    return { error: "La contraseña no coincide con ese comité." };
+    return { error: "La contraseña no coincide con esa cuenta." };
   }
 
-  redirect(next.startsWith("/") ? next : `/comite/${code}`);
+  const home = isDireccion ? "/panel" : `/comite/${code}`;
+  redirect(next.startsWith("/") ? next : home);
 }
 
 export async function signOut() {

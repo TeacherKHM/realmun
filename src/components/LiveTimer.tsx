@@ -8,6 +8,7 @@ type Props = {
   state: TimerState | null;
   serverNow: string;
   variant?: "tv" | "console";
+  compact?: boolean;
   className?: string;
 };
 
@@ -15,7 +16,13 @@ type Props = {
  * Reloj vivo: avanza en el navegador a partir de `serverNow` para que la consola
  * y la pantalla de TV coincidan aunque la red tarde.
  */
-export function LiveTimer({ state, serverNow, variant = "console", className }: Props) {
+export function LiveTimer({
+  state,
+  serverNow,
+  variant = "console",
+  compact = false,
+  className,
+}: Props) {
   const [nowMs, setNowMs] = useState(() => Date.parse(serverNow));
 
   useEffect(() => {
@@ -25,6 +32,12 @@ export function LiveTimer({ state, serverNow, variant = "console", className }: 
   }, [serverNow]);
 
   return (
-    <TimerDisplay state={state} nowMs={nowMs} variant={variant} className={className} />
+    <TimerDisplay
+      state={state}
+      nowMs={nowMs}
+      variant={variant}
+      compact={compact}
+      className={className}
+    />
   );
 }

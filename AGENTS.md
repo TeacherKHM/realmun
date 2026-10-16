@@ -32,6 +32,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 - **Portada** con los 4 comités como placas de delegación; enlace a la pantalla de TV de cada uno.
 - **Login por comité**: una cuenta Supabase Auth por comité; la contraseña es compartida dentro del comité.
 - **Consola del comité** (`/comite/[code]`) con secciones: resumen, asistencia, cronómetro, sanciones, hojas de resolución, rúbrica, delegados y sesiones.
+- **Panel de dirección** (`/panel`): cuenta única de la dirección (presidente o encargado general) con la radiografía de los 4 comités en una sola vista. No puede abrirlo una cuenta de comité.
 - **Pantalla de TV** (`/vista-tv/[code]`): cronómetro gigante, comité, orador y marcador; sin login, sincronizada cada segundo.
 - **Sesiones múltiples**: la sesión activa vive en `committees.active_session_id` y define qué se ve en consola y TV.
 - **Rúbrica**: 4 criterios (1–10) definidos en `src/lib/types.ts` → `RUBRIC_CRITERIA`.
@@ -41,11 +42,12 @@ Requiere `.env.local` (ver `.env.local.example`).
 | Ruta | Rol |
 | --- | --- |
 | `src/app/page.tsx` | Portada con las placas |
-| `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité |
+| `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité o por dirección |
 | `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
+| `src/app/panel/**` | Panel de dirección (layout con encabezado y tarjeta por comité) |
 | `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
 | `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
-| `src/proxy.ts` | Protección de `/comite/*` y refresco de la sesión |
+| `src/proxy.ts` | Protección de `/comite/*` y `/panel/*` y refresco de la sesión |
 | `src/app/actions/*.ts` | Server actions por dominio |
 | `src/lib/*` | Acceso a datos, sesión, formato y tipos |
 | `supabase/migrations/*.sql` | Esquema aplicado al proyecto remoto |
@@ -56,6 +58,8 @@ Notas de implementación:
 - **Datos**: todo pasa por server actions con el cliente Supabase ligado a la sesión del encargado (RLS real). Las mutaciones se validan en `src/lib/guard.ts` y refrescan la consola con `revalidateConsole`.
 - **Cronómetro**: estado en `timer_state` (una fila por comité). `ends_at` + `started_at` permiten que consola y TV calculen el tiempo con reloj de servidor, sin depender de latencia; `LiveTimer` avanza localmente cada 200 ms.
 - **TV**: el sondeo a `/api/tv/[code]` cada segundo trae cronómetro y marcador (la función `committee_tv_stats` es `security definer` y no expone motivos de sanción).
+- **Roles**: `profiles.role` es `'encargado'` (una cuenta por comité) o `'direccion'`. `src/lib/auth.ts` expone `requireSession()` (cualquier cuenta), `requireCommittee(code)` (solo su comité) y `requireDireccion()` (solo la dirección; a las demás las manda a su consola).
+- **Panel de dirección**: la RPC `direccion_stats()` es `security definer`, recibe `auth.uid()` y **se niega a sí misma** si esa cuenta no tiene `role = 'direccion'` (así el RLS de las tablas, atado al comité, no estorba). Devuelve los 4 comités en un solo llamado. El panel se refresca solo cada 15 s con `AutoRefresh` + `router.refresh()`, sin recargar la página.
 - **Diseño**: no hay Tailwind config file; los tokens viven en `src/app/globals.css` (`@theme`). Tipografías: Instrument Serif (display), Public Sans (interfaz), Archivo (reloj). Clases propias: `.placard`, `.btn*`, `.panel`, `.field`, `.rail-link`, `.clock`.
 - `cacheComponents` se dejó **desactivado** a propósito: el panel es dinámico de punta a punta.
 
@@ -126,9 +130,44 @@ El proyecto se desplegó a **https://realmun.vercel.app** con el CLI 64.2.0:
 - Prueba de punta a punta con Chrome real contra producción: todas las 15 comprobaciones pasan, sin errores de JavaScript (login, asistencia, cronómetro, TV, sanciones, rúbrica, hojas, delegados, sesiones y bloqueo entre comités).
 - El marcador de la TV en producción muestra correctamente «Amonestaciones» (plural corregido).
 
+### Etapa 5 — Panel de dirección (completada)
+
+Vista global para el presidente / encargado general del modelo, en **`/panel`**:
+
+- **Rol nuevo**: `profiles.role` (`'encargado'` | `'direccion'`). `src/lib/auth.ts` gana `requireDireccion()`; `committeeSession` ahora lleva el rol. Migración `0006_direccion_dashboard.sql`.
+- **RPC `direccion_stats()`**: `security definer`, un solo llamado para los 4 comités (comité, sesión activa, delegados activos, presencia, sanciones por tipo, hojas, avance y promedio de rúbrica, cronómetro). Verifica `auth.uid()` contra `profiles.role` y lanza `42501` si la cuenta no es de dirección. `execute` solo para `authenticated`.
+- **Cuenta de dirección**: `direccion@realmun.mx`, vinculada a un `profiles` con `role = 'direccion'` (la fila exige `committee_id`, así que apunta al primer comité; el RLS del comité le queda de sobra y la RPC no lo usa). Credenciales en `MEMORY.md`.
+- **Interfaz**: `/panel` con encabezado oscuro y banda de acentos (uno por comité), marcador global (comités en sesión, delegados en sala, sanciones, hojas) y una tarjeta por comité con sesión, cronómetro vivo, barra de presencia, sanciones, hojas, rúbrica y enlace a su TV. Se refresca solo cada 15 s (`AutoRefresh`) o con «Actualizar ahora» (`RefreshButton`).
+- **Login**: el formulario ofrece la opción **Dirección**; `signIn` resuelve el correo (`direccion@realmun.mx`) y aterriza en `/panel`. Con `next=/panel` la opción queda preseleccionada.
+- **Protección**: `proxy.ts` cubre `/comite/:path*` y `/panel/:path*`; además `requireDireccion()` manda a su consola a cualquier cuenta que no sea de dirección.
+
+Verificación (Chrome real contra el servidor de desarrollo, `puppeteer-core`):
+
+| Comprobación | Resultado |
+| --- | --- |
+| `/panel` sin sesión → `/login?next=/panel` con Dirección preseleccionada | OK |
+| Login de dirección entra al panel | OK |
+| El panel lista los 4 comités, cada uno con su acento y su enlace de TV | OK |
+| Cada tarjeta muestra sesión, presencia, sanciones, hojas y rúbrica | OK |
+| Marcador global (comités en sesión / delegados / sanciones / hojas) | OK |
+| «Actualizar ahora» no rompe la vista | OK |
+| Una cuenta de comité no abre `/panel` (307 a su consola) | OK |
+| La TV sigue pública | OK |
+| La consola y el login de comités siguen intactos; TV y reloj renderizan | OK |
+| Sin errores de JavaScript | OK |
+
+Detalles técnicos de la consulta: la verificación de rol va **dentro** de la función (`insufficient_privilege`), no en una política, para no reescribir el RLS existente. `TimerDisplay`/`LiveTimer` ganaron un prop `compact` (por defecto `false`) para el reloj de las tarjetas, sin tocar consola ni TV.
+
+> Sobre la creación de la cuenta: se hizo por SQL (`auth.users` + `auth.identities` + `profiles`). GoTrue exige que `recovery_token`, `email_change`, `email_change_token_new/current`, `phone_change*` y `reauthentication_token` queden en `''` y no en `NULL`; con `NULL` el login devuelve `500 Database error querying schema`. Ya quedó corregido.
+
+**Desplegado a producción** (`vercel --prod`): `/` 200, `/login` 200, `/panel` 307 a `/login?next=/panel` sin sesión, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200. Las 24 comprobaciones del panel y la regresión de consola/TV pasan contra `https://realmun.vercel.app` y no hay errores de JavaScript.
+
+> Zona horaria: al probar en producción se vio que `formatTime`/`formatDateTime` renderizaban en **UTC** (Vercel) y no en la hora de San Luis. `src/lib/format.ts` ahora fija `timeZone: "America/Mexico_City"` en sus tres `Intl.DateTimeFormat`; esto también corrige las horas de sanciones y hojas en la consola, que estaban corridas 6 horas en producción.
+
 ### Pendientes
 
-- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Las nuevas capturas con las esquinas redondeadas están en `~/Desktop/RealMUN-capturas/`.
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png` y `14-panel-direccion-movil.png`.
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos).
-- Cambiar la contraseña por defecto de los comités.
-- (Despliegue hecho) — pendiente: conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
+- Cambiar la contraseña por defecto de los comités **y de la dirección**.
+- Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
+- Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.

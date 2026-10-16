@@ -14,11 +14,13 @@ type Props = {
   state: TimerState | null;
   nowMs: number;
   variant?: "tv" | "console";
+  /** Tamaño reducido, para tarjetas (panel de dirección). */
+  compact?: boolean;
   className?: string;
 };
 
 /** Reloj presentacional: quien lo usa decide cómo avanza el tiempo. */
-export function TimerDisplay({ state, nowMs, variant = "console", className }: Props) {
+export function TimerDisplay({ state, nowMs, variant = "console", compact = false, className }: Props) {
   if (!state) {
     return (
       <p className={className} aria-live="off">
@@ -39,8 +41,9 @@ export function TimerDisplay({ state, nowMs, variant = "console", className }: P
         : "text-ink"
       : "text-muted";
 
-  const size =
-    variant === "tv"
+  const size = compact
+    ? "text-[clamp(2rem,4vw,2.75rem)]"
+    : variant === "tv"
       ? "text-[clamp(4.5rem,25vw,20rem)]"
       : "text-[clamp(2.75rem,9vw,5rem)]";
 
