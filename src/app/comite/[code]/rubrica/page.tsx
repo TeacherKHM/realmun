@@ -1,4 +1,5 @@
 import { clearRubric, saveRubric } from "@/app/actions/rubric";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, NoSession, PageHeader, Panel } from "@/components/ui";
 import { getRubricMap, listDelegates, resolveConsole } from "@/lib/data";
@@ -63,10 +64,10 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
             return (
               <li
                 key={delegate.id}
-                className="flex items-baseline justify-between rounded-control border border-line-soft bg-paper px-3 py-2 text-sm"
+                className="flex items-baseline justify-between gap-3 rounded-control border border-line-soft bg-paper px-3 py-2 text-sm"
               >
-                <span>{delegate.name}</span>
-                <span className={`font-clock text-lg ${average === null ? "text-muted" : ""}`}>
+                <span className="min-w-0 break-words">{delegate.name}</span>
+                <span className={`font-clock tabular-nums text-lg ${average === null ? "text-muted" : ""}`}>
                   {formatScore(average)}
                 </span>
               </li>
@@ -83,13 +84,13 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
           return (
             <details key={delegate.id} className="panel">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 px-5 py-4">
-                <span>
-                  <span className="font-semibold">{delegate.name}</span>
+                <span className="min-w-0">
+                  <span className="break-words font-semibold">{delegate.name}</span>
                   {delegate.delegation ? (
                     <span className="text-sm text-muted"> · {delegate.delegation}</span>
                   ) : null}
                 </span>
-                <span className="font-clock text-xl">
+                <span className="font-clock tabular-nums text-xl">
                   {row ? formatScore(rubricAverage(row.scores)) : "sin evaluar"}
                 </span>
               </summary>
@@ -109,10 +110,11 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
                           id={`${delegate.id}-${criterion.key}`}
                           name={`score_${criterion.key}`}
                           type="number"
+                          inputMode="numeric"
                           min={RUBRIC_SCALE.min}
                           max={RUBRIC_SCALE.max}
                           defaultValue={saved.get(criterion.key) ?? 8}
-                          className="field w-24"
+                          className="field w-24 tabular-nums"
                         />
                         <p className="mt-1 text-xs text-muted">{criterion.hint}</p>
                       </div>
@@ -129,7 +131,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
                       rows={2}
                       defaultValue={row?.comment ?? ""}
                       className="field"
-                      placeholder="Observaciones para la retroalimentación"
+                      placeholder="Observaciones para la retroalimentación…"
                     />
                   </div>
 
@@ -142,9 +144,13 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
                   <form action={clearRubric.bind(null, committee.code)} className="mt-3">
                     <input type="hidden" name="session_id" value={session.id} />
                     <input type="hidden" name="delegate_id" value={delegate.id} />
-                    <SubmitButton className="btn btn-danger" pendingText="…">
+                    <ConfirmSubmitButton
+                      className="btn btn-danger"
+                      pendingText="…"
+                      confirmMessage={`¿Borrar la evaluación de ${delegate.name} en esta sesión?`}
+                    >
                       Borrar evaluación
-                    </SubmitButton>
+                    </ConfirmSubmitButton>
                   </form>
                 ) : null}
               </div>

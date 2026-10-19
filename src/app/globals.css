@@ -16,8 +16,11 @@
   --color-paper-warm: #fbfcfe;
   --color-line: #d3dce8;
   --color-line-soft: #e6ecf4;
+  /* Borde de controles: 3.30:1 sobre blanco, para que un campo vacío se vea. */
+  --color-edge: #7d8fa8;
   --color-muted: #5b6b80;
-  --color-gold: #c9a227;
+  /* Latón ceremonial: 4.58:1 sobre blanco (y con texto blanco encima). */
+  --color-gold: #94700f;
   --color-sanction: #b3261e;
   --color-ok: #1f7a4d;
 
@@ -48,6 +51,8 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* La app es clara: los controles nativos (select, scrollbars) siguen el tema. */
+    color-scheme: light;
   }
 
   body {
@@ -65,6 +70,13 @@
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  a,
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(75, 146, 219, 0.28);
   }
 
   ::selection {
@@ -119,6 +131,14 @@
     }
   }
 
+  /* Variante de tabla de trabajo (panel de dirección): conserva la marca de
+     acento, pero el vuelo y la inclinación se reservan a las placas de portada. */
+  .placard[data-flat],
+  .placard[data-flat]:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
   .btn {
     display: inline-flex;
     align-items: center;
@@ -151,7 +171,7 @@
   .btn-quiet {
     background: transparent;
     color: var(--color-ink);
-    border-color: var(--color-line);
+    border-color: var(--color-edge);
   }
 
   .btn-quiet:hover:not(:disabled) {
@@ -173,14 +193,58 @@
   .field {
     width: 100%;
     background: #fff;
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-edge);
     border-radius: var(--radius-control);
     padding: 0.55rem 0.7rem;
     color: var(--color-ink);
   }
 
+  /* El marcador de ejemplo se lee (4.98:1): nunca sustituye a la etiqueta. */
+  .field::placeholder {
+    color: var(--color-muted);
+  }
+
   .field:focus {
     border-color: var(--color-flag);
+  }
+
+  /* Acción en línea dentro de un panel: el mismo tono en toda la consola. */
+  .link {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-line);
+    text-underline-offset: 4px;
+    transition: color 140ms ease, text-decoration-color 140ms ease;
+  }
+
+  .link:hover {
+    color: var(--color-ink);
+    text-decoration-color: var(--color-ink);
+  }
+
+  /* Enlace de salto: sale solo cuando recibe el foco. */
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 60;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-control);
+    background: var(--color-ink);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 10px 24px -10px rgba(6, 16, 31, 0.75);
+    transform: translateY(calc(-100% - 2rem));
+    transition: transform 140ms ease;
+  }
+
+  .skip-link:focus-visible {
+    transform: none;
+    outline-color: var(--color-flag);
+    outline-offset: 3px;
   }
 
   .panel {

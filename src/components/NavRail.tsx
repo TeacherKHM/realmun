@@ -32,7 +32,7 @@ export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
         <Link href="/" className="block font-display text-3xl leading-none text-white">
           RealMUN
         </Link>
-        <p className="mt-2 flex items-center gap-2 text-sm text-white/65">
+        <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
           <span
             aria-hidden
             className="inline-block h-3 w-3 shrink-0"
@@ -43,7 +43,7 @@ export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
         {isDireccion ? (
           <Link
             href="/panel"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-control border border-white/20 px-2.5 py-1 text-xs text-white/80 hover:border-white/50 hover:text-white"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-control border border-white/25 px-2.5 py-1 text-xs text-white/70 hover:border-white/50 hover:text-white"
           >
             ← Panel de dirección
           </Link>
@@ -55,7 +55,7 @@ export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
           const href = section.slug ? `${base}/${section.slug}` : base;
           const active = pathname === href;
           return (
-            <Link key={section.slug || "resumen"} href={href} className="rail-link" data-active={active}>
+            <Link key={section.slug || "resumen"} href={href} className="rail-link" data-active={active} aria-current={active ? "page" : undefined}>
               {section.label}
             </Link>
           );
@@ -63,17 +63,13 @@ export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
       </nav>
 
       <div className="border-t border-white/12 px-5 py-4">
-        <Link
-          href={`/vista-tv/${code}`}
-          target="_blank"
-          className="block text-sm text-white/70 underline decoration-white/30 underline-offset-4 hover:text-white"
-        >
+        <Link href={`/vista-tv/${code}`} target="_blank" className="link text-white/70 hover:text-white" rel="noopener noreferrer">
           Abrir pantalla de TV
         </Link>
         <form action={signOut} className="mt-3">
           <button
             type="submit"
-            className="text-sm text-white/55 underline decoration-white/20 underline-offset-4 hover:text-white"
+            className="mt-3 text-sm text-white/55 underline decoration-white/20 underline-offset-4 hover:text-white"
           >
             Cerrar sesión
           </button>

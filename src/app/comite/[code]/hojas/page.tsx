@@ -1,4 +1,5 @@
 import { addResolution, deleteResolution } from "@/app/actions/resolutions";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, NoSession, PageHeader, Panel, Stat } from "@/components/ui";
 import { listDelegates, listResolutions, resolveConsole } from "@/lib/data";
@@ -103,21 +104,25 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
                       key={row.id}
                       className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
                     >
-                      <div>
-                        <p className="font-semibold">
+                      <div className="min-w-0">
+                        <p className="break-words font-semibold">
                           {delegate?.name ?? "Delegado eliminado"}{" "}
-                          <span className="font-clock text-sm text-muted">v{row.version}</span>
+                          <span className="font-clock tabular-nums text-sm text-muted">v{row.version}</span>
                         </p>
-                        <p className="text-xs text-muted">
+                        <p className="break-words text-xs text-muted">
                           {formatDateTime(row.received_at)}
                           {row.notes ? ` · ${row.notes}` : ""}
                         </p>
                       </div>
                       <form action={deleteResolution.bind(null, committee.code)}>
                         <input type="hidden" name="resolution_id" value={row.id} />
-                        <SubmitButton className="btn btn-danger" pendingText="…">
+                        <ConfirmSubmitButton
+                          className="btn btn-danger"
+                          pendingText="…"
+                          confirmMessage={`¿Quitar la hoja v${row.version} de ${delegate?.name ?? "este delegado"}?`}
+                        >
                           Quitar
-                        </SubmitButton>
+                        </ConfirmSubmitButton>
                       </form>
                     </li>
                   );

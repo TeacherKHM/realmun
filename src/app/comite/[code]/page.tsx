@@ -40,7 +40,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
           Todavía no hay sesiones.{" "}
           <Link
             href={`/comite/${committee.code}/sesiones`}
-            className="underline decoration-line underline-offset-4"
+            className="link"
           >
             Crea la primera sesión
           </Link>{" "}
@@ -102,7 +102,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
           actions={
             <Link
               href={`/comite/${committee.code}/cronometro`}
-              className="text-sm text-muted underline decoration-line underline-offset-4"
+              className="link"
             >
               Ajustes
             </Link>
@@ -117,7 +117,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               <input type="hidden" name="seconds" value={60} />
               <input type="hidden" name="label" value="Discurso" />
               <SubmitButton className="btn btn-quiet" pendingText="…">
-                1:00
+                Discurso · 1:00
               </SubmitButton>
             </form>
             <form action={timerCommand.bind(null, committee.code)}>
@@ -126,7 +126,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               <input type="hidden" name="seconds" value={120} />
               <input type="hidden" name="label" value="Moderado" />
               <SubmitButton className="btn btn-quiet" pendingText="…">
-                2:00
+                Moderado · 2:00
               </SubmitButton>
             </form>
             <form action={timerCommand.bind(null, committee.code)}>
@@ -135,7 +135,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               <input type="hidden" name="seconds" value={300} />
               <input type="hidden" name="label" value="Caucus" />
               <SubmitButton className="btn btn-quiet" pendingText="…">
-                5:00
+                Caucus · 5:00
               </SubmitButton>
             </form>
 
@@ -182,7 +182,7 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
             actions={
               <Link
                 href={`/comite/${committee.code}/sanciones`}
-                className="text-sm text-muted underline decoration-line underline-offset-4"
+                className="link"
               >
                 Registrar
               </Link>
@@ -217,13 +217,13 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               actions={
                 <Link
                   href={`/comite/${committee.code}/hojas`}
-                  className="text-sm text-muted underline decoration-line underline-offset-4"
+                  className="link"
                 >
                   Registrar
                 </Link>
               }
             >
-              <p className="font-clock text-4xl">{resolutions.length}</p>
+              <p className="font-clock tabular-nums text-4xl">{resolutions.length}</p>
               <p className="mt-2 text-xs text-muted">
                 {sinHojas.length > 0
                   ? `Faltan ${pluralize(sinHojas.length, "delegado", "delegados")} por entregar.`
@@ -237,13 +237,13 @@ export default async function SummaryPage({ params }: PageProps<"/comite/[code]"
               actions={
                 <Link
                   href={`/comite/${committee.code}/rubrica`}
-                  className="text-sm text-muted underline decoration-line underline-offset-4"
+                  className="link"
                 >
                   Evaluar
                 </Link>
               }
             >
-              <p className="font-clock text-4xl">{formatScore(generalAverage)}</p>
+              <p className="font-clock tabular-nums text-4xl">{formatScore(generalAverage)}</p>
               <p className="mt-2 text-xs text-muted">Promedio general del comité en esta sesión.</p>
             </Panel>
           </div>

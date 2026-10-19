@@ -5,6 +5,7 @@ import {
   setActiveSession,
   updateSessionStatus,
 } from "@/app/actions/sessions";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, PageHeader, Panel } from "@/components/ui";
 import { resolveConsole } from "@/lib/data";
@@ -115,9 +116,13 @@ export default async function SessionsPage({ params }: PageProps<"/comite/[code]
 
                       <form action={deleteSession.bind(null, committee.code)}>
                         <input type="hidden" name="session_id" value={session.id} />
-                        <SubmitButton className="btn btn-danger" pendingText="…">
+                        <ConfirmSubmitButton
+                          className="btn btn-danger"
+                          pendingText="…"
+                          confirmMessage={`¿Eliminar ${session.title}? Se borra también su asistencia, sanciones, hojas y evaluaciones.`}
+                        >
                           Eliminar
-                        </SubmitButton>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   </li>

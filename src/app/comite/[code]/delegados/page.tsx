@@ -4,6 +4,7 @@ import {
   toggleDelegate,
   updateDelegate,
 } from "@/app/actions/delegates";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, PageHeader, Panel } from "@/components/ui";
 import { listDelegates, resolveConsole } from "@/lib/data";
@@ -64,7 +65,7 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
                 <li key={delegate.id} className="rounded-control border border-line bg-white">
                   <details>
                     <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3">
-                      <span className="font-semibold">
+                      <span className="min-w-0 break-words font-semibold">
                         {delegate.name}
                         {delegate.delegation ? (
                           <span className="font-normal text-muted"> · {delegate.delegation}</span>
@@ -145,9 +146,13 @@ export default async function DelegatesPage({ params }: PageProps<"/comite/[code
                         </form>
                         <form action={deleteDelegate.bind(null, committee.code)}>
                           <input type="hidden" name="delegate_id" value={delegate.id} />
-                          <SubmitButton className="btn btn-danger" pendingText="…">
+                          <ConfirmSubmitButton
+                            className="btn btn-danger"
+                            pendingText="…"
+                            confirmMessage={`¿Eliminar a ${delegate.name}? Se borra su asistencia, sanciones, hojas y evaluaciones.`}
+                          >
                             Eliminar delegado
-                          </SubmitButton>
+                          </ConfirmSubmitButton>
                         </form>
                       </div>
                     </div>

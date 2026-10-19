@@ -20,7 +20,7 @@ export default async function CommitteeLayout({
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
-      <aside className="lg:sticky lg:top-0 lg:h-dvh">
+      <aside className="lg:sticky lg:top-0 lg:h-dvh" aria-label="Navegación del comité">
         <NavRail
           code={committee.code}
           sigla={committee.sigla}
@@ -37,7 +37,7 @@ export default async function CommitteeLayout({
                 <span aria-hidden className="h-6 w-1.5" style={{ background: committee.accent }} />
                 {committee.sigla}
               </p>
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1 max-w-[70ch] text-sm text-muted">
                 {committee.name}
                 {committee.topic ? ` · ${committee.topic}` : ""}
                 {!isDireccion && displayName ? ` · ${displayName}` : ""}
@@ -54,6 +54,7 @@ export default async function CommitteeLayout({
                 href={`/vista-tv/${committee.code}`}
                 target="_blank"
                 className="btn btn-quiet"
+                rel="noopener noreferrer"
               >
                 Pantalla de TV
               </Link>
@@ -78,7 +79,7 @@ export default async function CommitteeLayout({
             ) : (
               <Link
                 href={`/comite/${committee.code}/sesiones`}
-                className="text-sm text-ink underline decoration-line underline-offset-4"
+                className="link"
               >
                 Crear la primera sesión
               </Link>
@@ -97,7 +98,7 @@ export default async function CommitteeLayout({
           </div>
         </header>
 
-        <div className="flex-1 px-5 py-7 sm:px-8">{children}</div>
+        <main className="flex-1 px-5 py-7 sm:px-8" id="contenido" tabIndex={-1}>{children}</main>
       </div>
     </div>
   );

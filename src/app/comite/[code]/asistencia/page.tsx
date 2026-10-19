@@ -1,4 +1,5 @@
 import { clearAttendance, markAllPresent, setAttendance } from "@/app/actions/attendance";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, NoSession, PageHeader, Panel } from "@/components/ui";
 import { getAttendanceMap, listDelegates, resolveConsole } from "@/lib/data";
@@ -9,8 +10,16 @@ export const dynamic = "force-dynamic";
 const BUTTON_STYLE: Record<AttendanceStatus, string> = {
   presente: "btn border-ok/40 text-ok hover:bg-ok hover:text-white",
   retardo: "btn border-gold/50 text-gold hover:bg-gold hover:text-white",
-  justificado: "btn border-line text-ink hover:border-ink",
+  justificado: "btn border-edge text-ink hover:border-ink",
   ausente: "btn border-sanction/40 text-sanction hover:bg-sanction hover:text-white",
+};
+
+/** Estado ya elegido: el botón se rellena en vez de solo marcar el borde. */
+const ACTIVE_STYLE: Record<AttendanceStatus, string> = {
+  presente: "bg-ok text-white border-ok",
+  retardo: "bg-gold text-white border-gold",
+  justificado: "bg-ink text-white border-ink",
+  ausente: "bg-sanction text-white border-sanction",
 };
 
 export default async function AttendancePage({ params }: PageProps<"/comite/[code]/asistencia">) {
@@ -37,9 +46,13 @@ export default async function AttendancePage({ params }: PageProps<"/comite/[cod
               </form>
               <form action={clearAttendance.bind(null, committee.code)}>
                 <input type="hidden" name="session_id" value={session.id} />
-                <SubmitButton className="btn btn-danger" pendingText="Limpiando…">
+                <ConfirmSubmitButton
+                  className="btn btn-danger"
+                  pendingText="Limpiando…"
+                  confirmMessage={`¿Limpiar toda la asistencia de ${session.title}? Los estados registrados se pierden.`}
+                >
                   Limpiar registro
-                </SubmitButton>
+                </ConfirmSubmitButton>
               </form>
             </>
           ) : null
@@ -84,6 +97,9 @@ async function AttendanceList({
           : "Todos los delegados tienen estado registrado."
       }
     >
+      <p className="sr-only" role="status" aria-live="polite">
+        {delegates.length - pendientes} de {delegates.length} delegados registrados.
+      </p>
       <ul className="space-y-2">
         {delegates.map((delegate) => {
           const current = attendance[delegate.id]?.status;
@@ -93,8 +109,8 @@ async function AttendanceList({
               key={delegate.id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
             >
-              <div className="min-w-[12rem]">
-                <p className="font-semibold">{delegate.name}</p>
+              <div className="min-w-0 flex-1 basis-[12rem]">
+                <p className="break-words font-semibold">{delegate.name}</p>
                 <p className="text-xs text-muted">
                   {delegate.delegation ?? "Sin delegación asignada"}
                   {current ? ` · ${ATTENDANCE_LABELS[current]}` : " · sin registrar"}
@@ -111,14 +127,11 @@ async function AttendanceList({
                       key={status}
                       name="status"
                       value={status}
-                      className={`${BUTTON_STYLE[status]} ${active ? "ring-2 ring-inset ring-current" : ""}`}
+                      ariaPressed={active}
+                      className={`${BUTTON_STYLE[status]} ${active ? ACTIVE_STYLE[status] : ""}`}
                       pendingText="…"
-                      title={
-                        active ? `${delegate.name}: ya está ${ATTENDANCE_LABELS[status]}` : undefined
-                      }
                     >
                       {ATTENDANCE_LABELS[status]}
-                      {active ? <span aria-hidden> ·</span> : null}
                     </SubmitButton>
                   );
                 })}

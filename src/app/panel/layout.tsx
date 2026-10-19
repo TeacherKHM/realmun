@@ -44,7 +44,7 @@ export default async function DirectorPanelLayout({ children }: LayoutProps<"/pa
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-8 sm:px-10">{children}</main>
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-8 sm:px-10" id="contenido" tabIndex={-1}>{children}</main>
     </div>
   );
 }

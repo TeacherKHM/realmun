@@ -63,7 +63,7 @@ export function Stat({ label, value, hint, tone = "default" }: StatProps) {
   return (
     <div className="rounded-card border border-line bg-paper-warm px-4 py-3">
       <p className="text-xs font-semibold text-muted">{label}</p>
-      <p className={`mt-1 font-clock text-3xl ${toneClass}`}>{value}</p>
+      <p className={`mt-1 font-clock tabular-nums text-3xl ${toneClass}`}>{value}</p>
       {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
     </div>
   );
@@ -81,10 +81,7 @@ export function NoSession({ code }: { code: string }) {
   return (
     <Empty>
       Este comité todavía no tiene una sesión activa.{" "}
-      <Link
-        href={`/comite/${code}/sesiones`}
-        className="underline decoration-line underline-offset-4"
-      >
+      <Link href={`/comite/${code}/sesiones`} className="link">
         Crear o activar una sesión
       </Link>{" "}
       para registrar información.

@@ -49,20 +49,20 @@ export function TvBoard({ code, initial }: { code: string; initial: TvPayload })
   const total = data.delegates_total;
 
   return (
-    <main className="flex min-h-dvh flex-col bg-ink text-white">
+    <main id="contenido" className="flex min-h-dvh flex-col bg-ink text-white">
       <div aria-hidden className="h-2" style={{ background: committee?.accent ?? "#4B92DB" }} />
 
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 px-8 pt-7 pb-5 sm:px-12">
         <div>
-          <p className="font-display text-5xl leading-none sm:text-6xl">
+          <h1 className="font-display text-5xl leading-none sm:text-6xl">
             {committee?.sigla ?? "Comité"}
-          </p>
+          </h1>
           <p className="mt-2 text-base text-white/70">
             {committee?.name}
             {committee?.topic ? ` · ${committee.topic}` : ""}
           </p>
         </div>
-        <div className="text-right text-sm text-white/60">
+        <div className="text-right text-base text-white/70">
           <p>{session ? session.title : "Sin sesión activa"}</p>
           <p className="mt-1">{presentes} de {total} delegados en sala</p>
         </div>
@@ -78,7 +78,7 @@ export function TvBoard({ code, initial }: { code: string; initial: TvPayload })
         <p className="mt-6 text-center text-lg text-white/80">
           {timer?.speaker ? `Orador: ${timer.speaker}` : "Sin orador en el atril"}
         </p>
-        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-white/55">
+        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-base text-white/75">
           <span>{timer ? MODE_LABELS[timer.mode] : "Cronómetro sin configurar"}</span>
           {timer?.label ? <span>{timer.label}</span> : null}
           <span>{timer?.running ? "En curso" : "En pausa"}</span>
@@ -89,16 +89,16 @@ export function TvBoard({ code, initial }: { code: string; initial: TvPayload })
         <dl className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
           {SANCTION_ORDER.map((type) => (
             <div key={type}>
-              <dt className="text-xs text-white/55">{SANCTION_PLURAL_LABELS[type]}</dt>
+              <dt className="text-sm text-white/75">{SANCTION_PLURAL_LABELS[type]}</dt>
               <dd className="font-clock mt-1 text-4xl">{data.sanctions[type] ?? 0}</dd>
             </div>
           ))}
           <div>
-            <dt className="text-xs text-white/55">Hojas recibidas</dt>
+            <dt className="text-sm text-white/75">Hojas recibidas</dt>
             <dd className="font-clock mt-1 text-4xl">{data.resolutions}</dd>
           </div>
           <div>
-            <dt className="text-xs text-white/55">Ausentes</dt>
+            <dt className="text-sm text-white/75">Ausentes</dt>
             <dd className="font-clock mt-1 text-4xl">{data.presence.ausente ?? 0}</dd>
           </div>
         </dl>

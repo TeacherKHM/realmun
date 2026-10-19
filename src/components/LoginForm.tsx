@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { signIn, type LoginState } from "@/app/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -15,6 +15,8 @@ type Props = {
 
 export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
   const [state, action] = useActionState<LoginState, FormData>(signIn, { error: null });
+  const [selected, setSelected] = useState(defaultCommittee ?? "");
+  const isDireccion = selected === DIRECCION_CODE;
 
   return (
     <form action={action} className="mt-8">
@@ -30,9 +32,11 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
                 type="radio"
                 name="committee"
                 value={committee.code}
-                defaultChecked={defaultCommittee === committee.code}
                 required
                 className="size-4 accent-ink"
+                checked={selected === committee.code}
+                onChange={() => setSelected(committee.code)}
+                aria-label={`Acceder como ${committee.sigla}: ${committee.name}`}
               />
               <span aria-hidden className="h-8 w-1" style={{ background: committee.accent }} />
               <span>
@@ -48,9 +52,11 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
             type="radio"
             name="committee"
             value={DIRECCION_CODE}
-            defaultChecked={defaultCommittee === DIRECCION_CODE}
             required
             className="size-4 accent-ink"
+            checked={isDireccion}
+            onChange={() => setSelected(DIRECCION_CODE)}
+            aria-label="Acceder como dirección (presidente o encargado general)"
           />
           <span aria-hidden className="h-8 w-1 bg-ink" />
           <span>
@@ -64,7 +70,7 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
 
       <div className="mt-6">
         <label className="label" htmlFor="password">
-          Contraseña del comité
+          {isDireccion ? "Contraseña de la dirección" : "Contraseña del comité"}
         </label>
         <input
           id="password"
@@ -85,8 +91,10 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <SubmitButton pendingText="Entrando…">Entrar al comité</SubmitButton>
-        <Link href="/" className="text-sm text-muted underline decoration-line underline-offset-4">
+        <SubmitButton pendingText="Entrando…">
+          {isDireccion ? "Entrar como dirección" : "Entrar al comité"}
+        </SubmitButton>
+        <Link href="/" className="link">
           Volver a la portada
         </Link>
       </div>

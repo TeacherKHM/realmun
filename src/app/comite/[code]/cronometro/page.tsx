@@ -20,7 +20,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
         title="Cronómetro"
         description="El tiempo corre igual en esta pantalla y en la televisión del comité. Los presets activan la cuenta de inmediato."
         actions={
-          <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet">
+          <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet" rel="noopener noreferrer">
             Ver pantalla de TV
           </Link>
         }
@@ -33,7 +33,7 @@ export default async function TimerPage({ params }: PageProps<"/comite/[code]/cr
         >
           <div className="rounded-card bg-ink px-6 py-8 text-center">
             <LiveTimer state={timer} serverNow={serverNow} variant="console" className="text-white" />
-            <p className="mt-4 text-sm text-white/60">
+            <p className="mt-4 text-sm text-white/55">
               {timer?.running ? "Corriendo" : "En pausa"}
               {timer?.mode === "countup" ? " · tiempo transcurrido" : " · cuenta regresiva"}
             </p>

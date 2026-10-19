@@ -34,7 +34,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${publicSans.variable} ${instrumentSerif.variable} ${archivo.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <a href="#contenido" className="skip-link">
+          Saltar al contenido
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

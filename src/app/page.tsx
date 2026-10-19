@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Placard } from "@/components/Placard";
 import { listCommittees } from "@/lib/data";
 import { SCHOOL_NAME } from "@/lib/committees";
-import { formatLongDate } from "@/lib/format";
+import { formatLongDate, pluralize } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +10,14 @@ export default async function HomePage() {
   const committees = await listCommittees();
 
   return (
-    <main className="flex min-h-dvh flex-col bg-ink text-white">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/12 px-6 py-4 text-sm text-white/60 sm:px-10">
+    <main id="contenido" className="flex min-h-dvh flex-col bg-ink text-white">
+      {/* Banda de acentos: una por comité, igual que en el panel de dirección. */}
+      <div aria-hidden className="flex h-1.5 shrink-0">
+        {committees.map((committee) => (
+          <span key={committee.id} className="flex-1" style={{ background: committee.accent }} />
+        ))}
+      </div>
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/12 px-6 py-4 text-sm text-white/55 sm:px-10">
         <p>{SCHOOL_NAME}</p>
         <p>{formatLongDate()}</p>
       </header>
@@ -28,17 +34,19 @@ export default async function HomePage() {
 
       <section className="flex-1 px-6 pb-16 sm:px-10">
         <div className="flex items-center justify-between gap-4 border-b border-white/25 pb-4">
-          <p className="text-sm text-white/60">Cuatro comités en sesión</p>
+          <p className="text-sm text-white/55">
+            {pluralize(committees.length, "comité", "comités")} · elige el tuyo
+          </p>
           <Link
             href="/login"
-            className="text-sm text-white/80 underline decoration-white/30 underline-offset-4 hover:text-white"
+            className="text-sm text-white/70 underline decoration-white/30 underline-offset-4 hover:text-white"
           >
-            Soy encargado
+            Iniciar sesión
           </Link>
         </div>
 
         {committees.length === 0 ? (
-          <p className="mt-8 text-white/60">Todavía no hay comités registrados.</p>
+          <p className="mt-8 text-white/55">Todavía no hay comités registrados.</p>
         ) : (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {committees.map((committee, index) => (
@@ -48,7 +56,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      <footer className="border-t border-white/12 px-6 py-5 text-xs text-white/45 sm:px-10">
+      <footer className="border-t border-white/12 px-6 py-5 text-xs text-white/55 sm:px-10">
         RealMUN · {SCHOOL_NAME} · Cronómetro y registros sincronizados en vivo con la pantalla del comité.
       </footer>
     </main>

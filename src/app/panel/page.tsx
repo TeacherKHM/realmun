@@ -45,7 +45,6 @@ export default async function DirectorPanelPage() {
         )} registrados. Lectura de ${formatTime(snapshot.now)}; se actualiza solo cada ${REFRESH_SECONDS} segundos.`}
         actions={<RefreshButton />}
       />
-
       <AutoRefresh seconds={REFRESH_SECONDS} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -114,12 +113,13 @@ function CommitteeCard({
   return (
     <article
       className="placard"
+      data-flat
       style={{ "--placard-accent": committee.accent } as React.CSSProperties}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="font-display text-3xl leading-none">{committee.sigla}</p>
-          <p className="mt-2 text-sm text-muted">
+        <div className="min-w-0">
+          <h2 className="break-words font-display text-3xl leading-none">{committee.sigla}</h2>
+          <p className="mt-2 break-words text-sm text-muted">
             {committee.name}
             {committee.topic ? ` · ${committee.topic}` : ""}
           </p>
@@ -152,7 +152,7 @@ function CommitteeCard({
         ) : (
           <p className="text-sm text-muted">Cronómetro en espera</p>
         )}
-        <p className="text-xs text-muted">
+        <p className="min-w-0 break-words text-xs text-muted">
           {timer?.running ? "Cronómetro en marcha" : "Cronómetro detenido"}
           {timer?.label ? ` · ${timer.label}` : ""}
           <br />
@@ -163,10 +163,10 @@ function CommitteeCard({
       <div className="mt-4 border-t border-line-soft pt-3">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm">
-            <span className="font-clock text-2xl">{present}</span>{" "}
+            <span className="font-clock tabular-nums text-2xl">{present}</span>{" "}
             <span className="text-muted">de {committee.delegates_total} delegados en sala</span>
           </p>
-          <p className="text-xs text-muted">{presencePct}%</p>
+          <p className="font-clock tabular-nums text-xs text-muted">{presencePct}%</p>
         </div>
         <div className="mt-2 h-1.5 rounded-chip bg-line-soft" aria-hidden>
           <div
@@ -177,34 +177,46 @@ function CommitteeCard({
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
           {ATTENDANCE_ORDER.filter((status) => status !== "presente").map((status) => (
             <span key={status}>
-              {ATTENDANCE_LABELS[status]}: {committee.presence[status] ?? 0}
+              {ATTENDANCE_LABELS[status]}:{" "}
+              <span className="font-clock tabular-nums">{committee.presence[status] ?? 0}</span>
             </span>
           ))}
-          {unregistered > 0 ? <span>Sin registro: {unregistered}</span> : null}
+          {unregistered > 0 ? (
+            <span>
+              Sin registro: <span className="font-clock tabular-nums">{unregistered}</span>
+            </span>
+          ) : null}
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-3 border-t border-line-soft pt-3 text-center">
         <div>
           <p className="text-xs text-muted">Sanciones</p>
-          <p className={`font-clock text-2xl ${committeeSanctions > 0 ? "text-sanction" : ""}`}>
+          <p
+            className={`font-clock tabular-nums text-2xl ${
+              committeeSanctions > 0 ? "text-sanction" : ""
+            }`}
+          >
             {committeeSanctions}
           </p>
         </div>
         <div>
           <p className="text-xs text-muted">Hojas</p>
-          <p className="font-clock text-2xl">{committee.resolutions}</p>
+          <p className="font-clock tabular-nums text-2xl">{committee.resolutions}</p>
         </div>
         <div>
           <p className="text-xs text-muted">Rúbrica</p>
-          <p className="font-clock text-2xl">{formatScore(committee.rubric?.average ?? null)}</p>
+          <p className="font-clock tabular-nums text-2xl">
+            {formatScore(committee.rubric?.average ?? null)}
+          </p>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-line-soft pt-3 text-xs text-muted">
         {SANCTION_ORDER.map((type) => (
           <span key={type}>
-            {SANCTION_PLURAL_LABELS[type]}: {committee.sanctions[type] ?? 0}
+            {SANCTION_PLURAL_LABELS[type]}:{" "}
+            <span className="font-clock tabular-nums">{committee.sanctions[type] ?? 0}</span>
           </span>
         ))}
         <span>
@@ -222,7 +234,7 @@ function CommitteeCard({
         <Link href={`/comite/${committee.code}/delegados`} className="btn btn-quiet">
           Delegados
         </Link>
-        <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet">
+        <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet" rel="noopener noreferrer">
           TV
         </Link>
       </div>
@@ -230,7 +242,7 @@ function CommitteeCard({
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted">
         <Link
           href={`/panel/comites#comite-${committee.code}`}
-          className="underline decoration-line underline-offset-4 hover:decoration-ink"
+          className="link"
         >
           Editar nombre del comité y del encargado
         </Link>

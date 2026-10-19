@@ -1,4 +1,5 @@
 import { addSanction, deleteSanction } from "@/app/actions/sanctions";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, NoSession, PageHeader, Panel, Stat } from "@/components/ui";
 import { listDelegates, listSanctions, resolveConsole } from "@/lib/data";
@@ -123,9 +124,9 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                     key={row.id}
                     className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-white px-4 py-3"
                   >
-                    <div className="min-w-[14rem]">
-                      <p className="font-semibold">{nameOf(row.delegate_id)}</p>
-                      <p className="text-sm text-muted">{row.reason}</p>
+                    <div className="min-w-0 flex-1 basis-[14rem]">
+                      <p className="break-words font-semibold">{nameOf(row.delegate_id)}</p>
+                      <p className="break-words text-sm text-muted">{row.reason}</p>
                       <p className="mt-1 text-xs text-muted">{formatDateTime(row.created_at)}</p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -134,9 +135,13 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                       </span>
                       <form action={deleteSanction.bind(null, committee.code)}>
                         <input type="hidden" name="sanction_id" value={row.id} />
-                        <SubmitButton className="btn btn-danger" pendingText="…">
+                        <ConfirmSubmitButton
+                          className="btn btn-danger"
+                          pendingText="…"
+                          confirmMessage={`¿Quitar la sanción de ${nameOf(row.delegate_id)} (${SANCTION_LABELS[row.type]})?`}
+                        >
                           Quitar
-                        </SubmitButton>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   </li>

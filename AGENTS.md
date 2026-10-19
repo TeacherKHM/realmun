@@ -201,9 +201,51 @@ Se verificó en la base que la asistencia escrita por la dirección quedó en `c
 
 > Ajuste: `is_direccion()` se dejó **sin** `execute` para `anon` (`revoke ... from public, anon`), a diferencia de `current_committee_id()` y `committee_tv_stats()`, que sí lo necesitan. Los avisos de Supabase quedan en el patrón `security definer` ya aceptado.
 
+### Etapa 7 — Pasada de diseño y accesibilidad (completada, sin migraciones)
+
+Se revisó toda la interfaz con dos lentes: **dirección de arte** (frontend-design) y **cumplimiento** (Web Interface Guidelines). No se tocó el esquema.
+
+**Concepto**: la app es una *mesa de sesión*. Lo único ruidoso son la **placa de delegación** y la **franja de bandera**; todo lo demás es papelería quieta. De ahí salieron dos correcciones de fondo:
+
+1. La portada conserva el vuelo y la inclinación 3D de las placas; el panel de dirección **no**: sus tarjetas son superficies de trabajo (`.placard[data-flat]`). Antes el mismo gesto decorativo se leía en las dos pantallas y el panel parecía una portada.
+2. Se retiró la repetición de tarjetas de número grande: las cifras del panel y de la consola van con `tabular-nums`, jerarquía tipográfica y sin cajas idénticas.
+
+**Contraste medido** (no estimado):
+
+| Token | Antes | Ahora | Ratio |
+| --- | --- | --- | --- |
+| `--color-gold` | `#c9a227` | `#94700f` | 2.42:1 → **4.58:1** (texto y texto blanco encima) |
+| `--color-edge` (nuevo) | `--color-line` 1.38:1 | `#7d8fa8` | **3.30:1** en bordes de `.field` y `.btn-quiet` |
+| blancos sobre `ink` | `/45` 4.35:1 | `/55`–`/75` | **5.80:1**–**9.7:1** |
+
+**Accesibilidad y semántica**
+
+- Enlace «Saltar al contenido» único en el layout raíz; destino `#contenido` en portada, login, consola, panel y TV. Se eliminaron los duplicados por página y los `id` repetidos (portada y login tenían dos).
+- La consola pasó de `<div>` a `<main>`; el riel es `<aside aria-label>`; enlace activo con `aria-current="page"`.
+- Asistencia: estado elegido **relleno** (antes solo un anillo), `aria-pressed` y resumen `role="status" aria-live="polite"`.
+- Acciones destructivas (limpiar asistencia, quitar sanción/hoja, eliminar delegado/sesión, borrar evaluación) piden confirmación con `ConfirmSubmitButton` (`window.confirm`).
+- Login: la etiqueta de contraseña y el botón cambian según se elija comité o dirección (antes decía «Contraseña del comité» con Dirección seleccionada); `Acceso` como título.
+- Portada: el conteo sale de los datos («4 comités · elige el tuyo»), «Soy encargado» → «Iniciar sesión», banda de acentos de los 4 comités (mismo recurso que el panel).
+- TV: el comité es el `<h1>`; etiquetas de marcador de 12→14 px y blancos `/75` para leerse a distancia de proyección.
+- Toque: `touch-action: manipulation` y tap-highlight en enlaces y botones; `color-scheme: light` para los controles nativos.
+
+**Verificación** (Chrome real, `puppeteer-core`, servidor local):
+
+| Suite | Resultado |
+| --- | --- |
+| `audit-ids.mjs` — 14 rutas: ids duplicados, un solo `h1`, destino del salto, saltos de jerarquía | 14/14 OK, 0 errores JS |
+| `verify-ui.mjs` — skip link, tokens, `aria-pressed`, relleno, `data-flat`, tabulares, 360 px | 24/24 OK |
+| `regress.mjs` / `panel.mjs` / `direccion.mjs` | 10/10 · 24/24 · 25/25 |
+| `eslint --max-warnings=0`, `tsc --noEmit`, `npm run build` | limpios |
+
+Los e2e se actualizaron para aceptar el diálogo de confirmación (`page.on("dialog", d => d.accept())`); sin eso la eliminación de delegados se quedaba en el `confirm` y fallaba la limpieza. Los datos que escriben las pruebas (asistencia, delegado de prueba) se borraron al terminar: la base quedó en 0 asistencias, 32 delegados, 1 sanción preexistente.
+
+Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-movil.png`, `21-login.png`, `22-consola-resumen.png`, `23-consola-asistencia.png`, `24-consola-asistencia-movil.png`, `25-panel.png`, `26-panel-comites.png`, `27-tv.png`.
+
 ### Pendientes
 
-- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas de producción en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel) y `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6).
+- Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
+- Desplegar la pasada de UI/UX a producción (`vercel --prod`); local está verificado, producción no.
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - Cambiar la contraseña por defecto de los comités **y de la dirección**.
 - Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).

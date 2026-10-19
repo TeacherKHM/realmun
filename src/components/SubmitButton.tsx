@@ -9,6 +9,8 @@ type Props = {
   title?: string;
   name?: string;
   value?: string;
+  /** Botones de estado (asistencia): marca el que ya está elegido. */
+  ariaPressed?: boolean;
 };
 
 /** Botón de envío con estado de espera, para formularios con server actions. */
@@ -19,6 +21,7 @@ export function SubmitButton({
   title,
   name,
   value,
+  ariaPressed,
 }: Props) {
   const { pending } = useFormStatus();
 
@@ -30,6 +33,7 @@ export function SubmitButton({
       title={title}
       name={name}
       value={value}
+      aria-pressed={ariaPressed}
     >
       {pending && pendingText ? pendingText : children}
     </button>

@@ -54,11 +54,11 @@ function CommitteeAdminCard({
     <section id={`comite-${committee.code}`} className="panel scroll-mt-24">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft px-5 py-4">
         <div>
-          <p className="flex items-center gap-2 font-display text-3xl leading-none">
+          <h2 className="flex items-center gap-2 font-display text-3xl leading-none">
             <span aria-hidden className="h-6 w-1.5" style={{ background: committee.accent }} />
             {committee.sigla}
-          </p>
-          <p className="mt-1 text-sm text-muted">
+          </h2>
+          <p className="mt-1 break-words text-sm text-muted">
             {committee.name}
             {committee.topic ? ` · ${committee.topic}` : ""}
           </p>

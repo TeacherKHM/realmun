@@ -18,8 +18,10 @@ export function Placard({ committee, index }: Props) {
       }}
     >
       <p className="font-display text-4xl leading-none">{committee.sigla}</p>
-      <h2 className="mt-3 text-xl">{committee.name}</h2>
-      <p className="mt-1 min-h-[2.75rem] text-sm text-muted">{committee.topic ?? "Tema por definir"}</p>
+      <h2 className="mt-3 break-words text-xl">{committee.name}</h2>
+      <p className="mt-1 min-h-[2.75rem] line-clamp-2 break-words text-sm text-muted">
+        {committee.topic ?? "Tema por definir"}
+      </p>
 
       <div className="mt-6 flex items-end justify-between gap-3 border-t border-line pt-3">
         <Link
