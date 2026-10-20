@@ -252,7 +252,7 @@ Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-m
 
 Cuatro frentes, sin tocar el RLS existente:
 
-- **Acceso propio de la dirección** (`/direccion`): una sola contraseña, sin la lista de comités, con `robots: noindex` y enlace discreto desde `/login`. Comparte el mismo `signIn`, así que no hay dos puertas que mantener. El login de comités conserva la opción «Dirección» para no romper enlaces ni pruebas.
+- **Acceso propio de la dirección** (`/direccion`): una sola contraseña, sin la lista de comités, con `robots: noindex` y enlace discreto desde `/login`. Comparte el mismo `signIn`, así que no hay dos puertas que mantener. `/login` es solo de comités: **no** ofrece la opción Dirección (se retiró después de la primera verificación) y `/login?next=/panel` ya no preselecciona nada.
 - **Límite de intentos** (migración `0008_login_throttle.sql`): tabla `login_attempts` con RLS activo y **sin políticas** (solo la usa el servidor con la clave secreta). La cuenta se bloquea a los **5 fallos por cuenta + IP** (o **20 por IP** repartidos entre cuentas) dentro de **15 minutos**; el chequeo ocurre *antes* de llamar a Supabase. Un acceso correcto borra los fallos de esa cuenta+IP y las filas de más de un día se limpian solas. Correo e IP se guardan hasheados (SHA-256 con `LOGIN_HASH_SALT`), nunca en claro.
 - **Cambio de contraseñas desde `/panel/comites`**: cada tarjeta tiene su formulario (nueva + repetir, mínimo 10, rechaza la contraseña de fábrica). La server action valida la dirección, busca el `user_id` del comité y aplica la contraseña con el **Admin API** (`updateUserById`) usando `SUPABASE_SECRET_KEY`; nunca se guarda ni se registra. `adminKeyStatus()` comprueba al cargar la página que la clave funcione (cacheado 5 min) y, si falta o no sirve, desactiva el formulario con un aviso en vez de fallar al enviar.
 - **Captcha opcional (Turnstile)**: `src/components/Turnstile.tsx` solo se renderiza si existe `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y manda `captchaToken` a `signInWithPassword`. Hay que activarlo también en Supabase (Authentication → Attack Protection) con la llave secreta del mismo widget.
@@ -264,6 +264,7 @@ Verificado en local (Chrome real, `puppeteer-core`, suite `auth.mjs` con las fas
 | Comprobación | Resultado |
 | --- | --- |
 | `/login` enlaza a `/direccion`; la pantalla no lista comités, no se indexa y envía la cuenta de dirección | OK |
+| `/login` lista solo los 4 comités (sin la opción Dirección) | OK |
 | 5 fallos seguidos dan siempre el mismo aviso, sin revelar si la cuenta existe | OK |
 | Tras 5 fallos la cuenta queda bloqueada y **la contraseña correcta tampoco entra** | OK |
 | Limpiando los intentos, la dirección vuelve a entrar | OK |

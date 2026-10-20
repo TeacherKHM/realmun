@@ -87,6 +87,7 @@ Cuenta única del presidente / encargado general. Contraseña inicial: **`direcc
 - Ve **todos** los comités en una sola vista (sesión, delegados en sala, sanciones, hojas y rúbrica) y se refresca solo cada 15 s.
 - **Entra a la consola de cualquier comité** (`/comite/<code>`) con la misma cuenta: atiende asistencia, cronómetro, sanciones, hojas, rúbrica, delegados y sesiones en los cuatro. El riel muestra «← Panel de dirección» y el encabezado una etiqueta «Vista de dirección».
 - **Edita el catálogo** en `/panel/comites`: nombre, sigla, tema y color de cada comité, más el nombre del encargado. La portada, las consolas y la TV lo reflejan al guardar.
+- **Entra por su propia pantalla** (`/direccion`), no por el login de comités: `/login` lista únicamente los 4 comités y enlaza al acceso de dirección en un pie discreto.
 - Un encargado de comité **no** puede abrir `/panel` ni la consola de otro comité: la app lo regresa a la suya, la RPC `direccion_stats()` lo rechaza y el RLS no le deja escribir fuera.
 - La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
 - Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
