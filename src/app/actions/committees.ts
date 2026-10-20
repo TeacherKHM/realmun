@@ -2,11 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { requireDireccion } from "@/lib/auth";
-import { optionalText, requireText } from "@/lib/guard";
+import { guardSession, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
+import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+/** Largo mínimo de las contraseñas nuevas (Supabase exige 6 por defecto). */
+const MIN_PASSWORD = 10;
+
+/** Contraseñas de fábrica que ya no deben volver a usarse. */
+const DEFAULT_PASSWORDS = new Set(["comite-2026", "direccion-2026"]);
+
+export type PasswordState = { ok: boolean; message: string | null };
 
 /**
  * La dirección edita el catálogo de un comité: sigla, nombre, tema y acento.
@@ -59,4 +68,72 @@ export async function updateEncargado(formData: FormData) {
   }
 
   revalidatePath("/panel", "layout");
+}
+
+/**
+ * La dirección cambia la contraseña compartida de un comité.
+ * Usa el Admin API de Supabase con la clave secreta del servidor; la contraseña
+ * nunca se guarda ni se registra en la app.
+ */
+export async function setCommitteePassword(
+  code: string,
+  _prev: PasswordState,
+  formData: FormData,
+): Promise<PasswordState> {
+  const session = await guardSession();
+  if (session.role !== "direccion") {
+    return { ok: false, message: "Solo la dirección puede cambiar contraseñas." };
+  }
+
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (password.length < MIN_PASSWORD) {
+    return { ok: false, message: `Usa al menos ${MIN_PASSWORD} caracteres.` };
+  }
+  if (password !== confirm) {
+    return { ok: false, message: "Las dos contraseñas no coinciden." };
+  }
+  if (DEFAULT_PASSWORDS.has(password)) {
+    return { ok: false, message: "Esa es la contraseña de fábrica: elige otra." };
+  }
+
+  if (!hasAdminKey()) {
+    return {
+      ok: false,
+      message: "Falta SUPABASE_SECRET_KEY en el servidor; el cambio está desactivado.",
+    };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: committee, error: committeeError } = await admin
+    .from("committees")
+    .select("id, sigla")
+    .eq("code", code)
+    .maybeSingle<{ id: string; sigla: string }>();
+
+  if (committeeError) return { ok: false, message: committeeError.message };
+  if (!committee) return { ok: false, message: "Ese comité no existe." };
+
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("user_id")
+    .eq("committee_id", committee.id)
+    .eq("role", "encargado")
+    .maybeSingle<{ user_id: string }>();
+
+  if (profileError) return { ok: false, message: profileError.message };
+  if (!profile) return { ok: false, message: "Ese comité no tiene cuenta de encargado." };
+
+  const { error } = await admin.auth.admin.updateUserById(profile.user_id, { password });
+  if (error) {
+    return {
+      ok: false,
+      message: `Supabase rechazó el cambio (${error.message}). Revisa la clave secreta del servidor.`,
+    };
+  }
+
+  revalidatePath("/panel/comites");
+  return { ok: true, message: `Contraseña de ${committee.sigla} actualizada.` };
 }

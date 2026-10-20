@@ -47,6 +47,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               next={nextParam}
             />
           )}
+
+          <p className="mt-6 border-t border-line-soft pt-4 text-xs text-muted">
+            ¿Presidente o encargado general?{" "}
+            <Link href="/direccion" className="link">
+              Entrar por el acceso de dirección
+            </Link>
+          </p>
         </div>
       </div>
     </main>

@@ -10,7 +10,7 @@ Resumen operativo de RealMUN. Si algo de aquí cambia, se actualiza este archivo
 | Proyecto | `realmun` (`prj_ZtiKqQtJcZAB8jJDf7XrELOEvSVD`) |
 | Cuenta | `k-hintze-m-7199` |
 | Equipo | `k-hintze-m-7199s-projects` (`team_peN3afQNFY9g8c8lVvAUrYsA`) |
-| Repositorio git | local, sin remoto todavía (no hay auto-deploy al hacer push) |
+| Repositorio | `origin` → `github.com/TeacherKHM/realmun` · push a `main` despliega a producción |
 
 Variables de entorno cargadas en **Production, Preview y Development**:
 
@@ -48,7 +48,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://lshgixbdzkfbjmjfbbvn.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
 ```
 
-La *secret key* / `service_role` **no se usa** en este proyecto: todo el acceso pasa por RLS con la sesión del encargado.
+La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para dos cosas: cambiar contraseñas de comités (`/panel/comites`) y limitar los intentos de acceso (tabla `login_attempts`). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
+
+> La que hubo en `.env.local` durante la Etapa 8 (`vck_…`) era un token de Vercel, no de Supabase: el Admin API devuelve `401 Invalid API key`.
 
 ## Acceso de los encargados
 
@@ -76,7 +78,10 @@ Cuenta única del presidente / encargado general. Contraseña inicial: **`direcc
 - La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
 - Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
 
-Cambiar la contraseña (SQL en el proyecto, reemplazar `<code>`):
+Cambiar la contraseña de un comité:
+
+- **Desde la app** (recomendado): `/panel/comites` → tarjeta del comité → «Contraseña del comité» (mínimo 10 caracteres). Requiere `SUPABASE_SECRET_KEY` en el servidor; la app usa el Admin API y no guarda la contraseña.
+- **SQL de respaldo** (si la clave secreta no está disponible), reemplazar `<code>` y la contraseña:
 
 ```sql
 update auth.users
@@ -84,9 +89,12 @@ set encrypted_password = extensions.crypt('NUEVA-CONTRASENA', extensions.gen_sal
 where email = '<code>@realmun.mx';
 ```
 
+La contraseña de la **dirección** todavía no tiene pantalla: se cambia desde el dashboard (Auth → Users) o con el mismo SQL sobre `direccion@realmun.mx`.
+
 ## Pantallas para el evento
 
 - Consola del encargado: `https://realmun.vercel.app/comite/comite-1`
+- Acceso de la dirección: `https://realmun.vercel.app/direccion`
 - Panel de dirección (presidente): `https://realmun.vercel.app/panel`
 - Comités y encargados (dirección): `https://realmun.vercel.app/panel/comites`
 - Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
@@ -105,6 +113,7 @@ where email = '<code>@realmun.mx';
 | `resolutions` | Hojas entregadas: versión incremental + hora + nota |
 | `rubric_scores` | `scores` jsonb (4 criterios 1–10) + comentario, único por sesión y delegado |
 | `timer_state` | Una fila por comité: `mode`, `running`, `ends_at`, `remaining_ms`, `started_at`, `elapsed_ms`, `speaker`, `label` |
+| `login_attempts` | Intentos de acceso fallidos (`account` e `ip_hash` hasheados, `ok`, `created_at`). RLS sin políticas: solo la usa el servidor con la clave secreta. Base del límite de 5 fallos / 15 min por cuenta+IP. |
 
 Funciones y políticas:
 

@@ -11,6 +11,8 @@ type Props = {
   value?: string;
   /** Botones de estado (asistencia): marca el que ya está elegido. */
   ariaPressed?: boolean;
+  /** Acciones bloqueadas por configuración del servidor. */
+  disabled?: boolean;
 };
 
 /** Botón de envío con estado de espera, para formularios con server actions. */
@@ -22,6 +24,7 @@ export function SubmitButton({
   name,
   value,
   ariaPressed,
+  disabled = false,
 }: Props) {
   const { pending } = useFormStatus();
 
@@ -29,7 +32,7 @@ export function SubmitButton({
     <button
       type="submit"
       className={className}
-      disabled={pending}
+      disabled={pending || disabled}
       title={title}
       name={name}
       value={value}

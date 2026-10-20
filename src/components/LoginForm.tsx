@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { signIn, type LoginState } from "@/app/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
+import { Turnstile } from "@/components/Turnstile";
 import { DIRECCION_CODE } from "@/lib/committees";
 import type { Committee } from "@/lib/types";
 
@@ -83,6 +84,8 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
       </div>
 
       <input type="hidden" name="next" value={next} />
+
+      <Turnstile />
 
       {state.error ? (
         <p role="alert" className="mt-4 rounded-control border border-sanction/40 bg-sanction/5 px-3 py-2 text-sm text-sanction">

@@ -47,6 +47,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 | `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
 | `src/app/panel/**` | Panel de dirección: `/panel` (radiografía) y `/panel/comites` (edita comités y encargados) |
 | `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
+| `src/app/direccion/page.tsx` + `src/components/DireccionForm.tsx` | Acceso propio de la dirección (sin listar comités, `noindex`) |
 | `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
 | `src/proxy.ts` | Protección de `/comite/*` y `/panel/*` y refresco de la sesión |
 | `src/app/actions/*.ts` | Server actions por dominio |
@@ -247,12 +248,38 @@ Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-m
 
 **Auto-deploy conectado**: el repositorio ya tiene remoto (`origin` → `github.com/TeacherKHM/realmun`) y la integración de Vercel despliega a producción en cada push a `main` (el deploy `realmun-v4w080dpd`, commit `90d2acd`, sustituyó al del CLI y quedó sirviendo `realmun.vercel.app`). `main` se mantiene sincronizado con `origin/main`; ya no hace falta `vercel --prod` para publicar.
 
+### Etapa 8 — Acceso endurecido (código listo; falta la clave secreta para activar dos piezas)
+
+Cuatro frentes, sin tocar el RLS existente:
+
+- **Acceso propio de la dirección** (`/direccion`): una sola contraseña, sin la lista de comités, con `robots: noindex` y enlace discreto desde `/login`. Comparte el mismo `signIn`, así que no hay dos puertas que mantener. El login de comités conserva la opción «Dirección» para no romper enlaces ni pruebas.
+- **Límite de intentos** (migración `0008_login_throttle.sql`): tabla `login_attempts` con RLS activo y **sin políticas** (solo la usa el servidor con la clave secreta). La cuenta se bloquea a los **5 fallos por cuenta + IP** (o **20 por IP** repartidos entre cuentas) dentro de **15 minutos**; el chequeo ocurre *antes* de llamar a Supabase. Un acceso correcto borra los fallos de esa cuenta+IP y las filas de más de un día se limpian solas. Correo e IP se guardan hasheados (SHA-256 con `LOGIN_HASH_SALT`), nunca en claro.
+- **Cambio de contraseñas desde `/panel/comites`**: cada tarjeta tiene su formulario (nueva + repetir, mínimo 10, rechaza la contraseña de fábrica). La server action valida la dirección, busca el `user_id` del comité y aplica la contraseña con el **Admin API** (`updateUserById`) usando `SUPABASE_SECRET_KEY`; nunca se guarda ni se registra. `adminKeyStatus()` comprueba al cargar la página que la clave funcione (cacheado 5 min) y, si falta o no sirve, desactiva el formulario con un aviso en vez de fallar al enviar.
+- **Captcha opcional (Turnstile)**: `src/components/Turnstile.tsx` solo se renderiza si existe `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y manda `captchaToken` a `signInWithPassword`. Hay que activarlo también en Supabase (Authentication → Attack Protection) con la llave secreta del mismo widget.
+- **Redirección segura**: `next` ya no acepta `//otro-dominio` ni barras invertidas. Antes `startsWith("/")` dejaba pasar `//evil.com` (redirección a otro dominio tras el login).
+- **Mensajes**: cualquier fallo de credenciales da el mismo texto; el bloqueo sí se anuncia («Demasiados intentos…»), que es lo útil para quien se equivocó.
+
+Verificado en local (Chrome real, `puppeteer-core`, suite `auth.mjs`):
+
+| Comprobación | Resultado |
+| --- | --- |
+| `/login` enlaza a `/direccion`; la pantalla no lista comités, no se indexa y envía la cuenta de dirección | OK |
+| 5 fallos seguidos dan siempre el mismo aviso, sin revelar si la cuenta existe | OK |
+| Con la clave secreta válida: 6.º intento bloqueado y la contraseña correcta tampoco entra | pendiente de la clave |
+| Cambio de contraseña, rechazo de la de fábrica / de las que no coinciden y restauración | pendiente de la clave |
+| Regresión completa (`regress` 10, `panel` 24, `direccion` 25, `audit-ids` 15, `verify-ui` 24) | OK, 0 errores JS |
+
+> La clave que había en `.env.local` (`vck_…`, un token de Vercel) no es de Supabase: el Admin API responde `401 Invalid API key`. Sin una clave válida el límite de intentos **falla abierto** (no se bloquea a nadie) y el formulario de contraseñas se muestra desactivado; el resto del login funciona igual.
+>
+> No se revocan las sesiones abiertas al cambiar una contraseña: el Admin API de GoTrue no expone un cierre por usuario. Las sesiones existentes siguen hasta que caduquen.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
-- Cambiar la contraseña por defecto de los comités **y de la dirección**.
-- Contraseñas: no hay pantalla para cambiarlas (ni de comités ni de dirección); por ahora se cambian desde el dashboard de Supabase (Auth → Users).
-- Login: falta límite de intentos propio + captcha/MFA; hoy solo protege el rate limit de Supabase Auth.
+- **Clave secreta de Supabase**: crear una *secret key* (`sb_secret_…`) y ponerla como `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel (Production y Preview). Sin ella quedan inactivos el cambio de contraseñas y el límite de intentos; el panel lo avisa y no deja enviar el formulario.
+- Cambiar la contraseña por defecto de los comités y de la dirección (la de dirección todavía no tiene pantalla: se cambia desde el dashboard de Supabase).
+- Login: el límite propio y el `/direccion` ya están; faltan los límites de Supabase Auth más estrictos (Authentication → Rate Limits), el captcha (Turnstile) y MFA para la dirección.
+- Al cambiar una contraseña no se cierran las sesiones abiertas de ese comité (el Admin API no tiene cierre por usuario).
 - Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.
 - El directorio local `supabase/migrations/` no tiene las migraciones 0002–0005 (se aplicaron al remoto con otros nombres desde etapas anteriores). La base remota es la fuente de verdad; si se rehace el proyecto desde cero, hay que reconstruir 0002–0005 o volcar el esquema.

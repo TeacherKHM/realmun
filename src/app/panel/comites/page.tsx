@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { updateCommittee, updateEncargado } from "@/app/actions/committees";
+import { PasswordForm } from "@/components/PasswordForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, PageHeader } from "@/components/ui";
 import { requireDireccion } from "@/lib/auth";
 import { committeeEmail } from "@/lib/committees";
 import { listCommittees, listProfiles } from "@/lib/data";
+import { adminKeyStatus } from "@/lib/supabase/admin";
+import type { AdminKeyState } from "@/lib/supabase/admin";
 import type { Committee, ProfileRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +16,7 @@ export default async function PanelCommitteesPage() {
   await requireDireccion();
 
   const [committees, profiles] = await Promise.all([listCommittees(), listProfiles()]);
+  const keyStatus = await adminKeyStatus();
 
   return (
     <>
@@ -24,20 +28,35 @@ export default async function PanelCommitteesPage() {
       {committees.length === 0 ? (
         <Empty>Todavía no hay comités registrados en la base de datos.</Empty>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-2">
-          {committees.map((committee) => (
-            <CommitteeAdminCard
-              key={committee.id}
-              committee={committee}
-              encargado={
-                profiles.find(
-                  (profile) =>
-                    profile.committee_id === committee.id && profile.role === "encargado",
-                ) ?? null
-              }
-            />
-          ))}
-        </div>
+        <>
+          {keyStatus !== "ok" ? (
+            <p
+              role="alert"
+              className="mb-5 rounded-control border border-sanction/40 bg-sanction/5 px-4 py-3 text-sm text-sanction"
+            >
+              {keyStatus === "missing"
+                ? "El cambio de contraseñas está desactivado: falta SUPABASE_SECRET_KEY en el servidor."
+                : "El cambio de contraseñas está desactivado: la clave secreta del servidor no es válida."}{" "}
+              El resto del panel funciona con normalidad.
+            </p>
+          ) : null}
+
+          <div className="grid gap-5 xl:grid-cols-2">
+            {committees.map((committee) => (
+              <CommitteeAdminCard
+                key={committee.id}
+                committee={committee}
+                keyStatus={keyStatus}
+                encargado={
+                  profiles.find(
+                    (profile) =>
+                      profile.committee_id === committee.id && profile.role === "encargado",
+                  ) ?? null
+                }
+              />
+            ))}
+          </div>
+        </>
       )}
     </>
   );
@@ -46,9 +65,11 @@ export default async function PanelCommitteesPage() {
 function CommitteeAdminCard({
   committee,
   encargado,
+  keyStatus,
 }: {
   committee: Committee;
   encargado: ProfileRow | null;
+  keyStatus: AdminKeyState;
 }) {
   return (
     <section id={`comite-${committee.code}`} className="panel scroll-mt-24">
@@ -136,6 +157,8 @@ function CommitteeAdminCard({
             </SubmitButton>
           </div>
         </form>
+
+        <PasswordForm code={committee.code} sigla={committee.sigla} status={keyStatus} />
       </div>
     </section>
   );
