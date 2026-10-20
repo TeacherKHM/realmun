@@ -248,7 +248,7 @@ Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-m
 
 **Auto-deploy conectado**: el repositorio ya tiene remoto (`origin` → `github.com/TeacherKHM/realmun`) y la integración de Vercel despliega a producción en cada push a `main` (el deploy `realmun-v4w080dpd`, commit `90d2acd`, sustituyó al del CLI y quedó sirviendo `realmun.vercel.app`). `main` se mantiene sincronizado con `origin/main`; ya no hace falta `vercel --prod` para publicar.
 
-### Etapa 8 — Acceso endurecido (código listo; falta la clave secreta para activar dos piezas)
+### Etapa 8 — Acceso endurecido (completada)
 
 Cuatro frentes, sin tocar el RLS existente:
 
@@ -259,25 +259,34 @@ Cuatro frentes, sin tocar el RLS existente:
 - **Redirección segura**: `next` ya no acepta `//otro-dominio` ni barras invertidas. Antes `startsWith("/")` dejaba pasar `//evil.com` (redirección a otro dominio tras el login).
 - **Mensajes**: cualquier fallo de credenciales da el mismo texto; el bloqueo sí se anuncia («Demasiados intentos…»), que es lo útil para quien se equivocó.
 
-Verificado en local (Chrome real, `puppeteer-core`, suite `auth.mjs`):
+Verificado en local (Chrome real, `puppeteer-core`, suite `auth.mjs` con las fases `lock`, `unlock` y `password`):
 
 | Comprobación | Resultado |
 | --- | --- |
 | `/login` enlaza a `/direccion`; la pantalla no lista comités, no se indexa y envía la cuenta de dirección | OK |
 | 5 fallos seguidos dan siempre el mismo aviso, sin revelar si la cuenta existe | OK |
-| Con la clave secreta válida: 6.º intento bloqueado y la contraseña correcta tampoco entra | pendiente de la clave |
-| Cambio de contraseña, rechazo de la de fábrica / de las que no coinciden y restauración | pendiente de la clave |
+| Tras 5 fallos la cuenta queda bloqueada y **la contraseña correcta tampoco entra** | OK |
+| Limpiando los intentos, la dirección vuelve a entrar | OK |
+| La dirección cambia la contraseña de un comité: la vieja deja de servir y la nueva abre | OK |
+| Rechazo de contraseñas que no coinciden y de la de fábrica | OK |
+| Restauración de la contraseña original (`auth.mjs` la devuelve por el Admin API) | OK |
 | Regresión completa (`regress` 10, `panel` 24, `direccion` 25, `audit-ids` 15, `verify-ui` 24) | OK, 0 errores JS |
 
-> La clave que había en `.env.local` (`vck_…`, un token de Vercel) no es de Supabase: el Admin API responde `401 Invalid API key`. Sin una clave válida el límite de intentos **falla abierto** (no se bloquea a nadie) y el formulario de contraseñas se muestra desactivado; el resto del login funciona igual.
+En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `account`/`ip_hash` de 64 caracteres (SHA-256), nunca el correo ni la IP en claro.
+
+> **Bug real encontrado por la prueba** (y corregido): React 19 limpia el formulario después de cada server action, así que al fallar un acceso el **radio del comité se desmarcaba**; como los radios llevaban `required`, el siguiente clic en «Entrar» no enviaba nada y el usuario se quedaba sin respuesta. Ahora el comité viaja en un `input` oculto (`name="committee"`, los radios pasan a `name="committee-choice"` para agruparse) y el `fieldset` se remonta con `key={state.attempt}` (`LoginState` ganó `attempt`) para que la selección se vea marcada otra vez.
+>
+> La app **prohíbe volver a la contraseña de fábrica** (`comite-2026` / `direccion-2026`), también desde la interfaz. Por eso la prueba restaura el valor original por el Admin API y no por el formulario.
 >
 > No se revocan las sesiones abiertas al cambiar una contraseña: el Admin API de GoTrue no expone un cierre por usuario. Las sesiones existentes siguen hasta que caduquen.
+>
+> La clave secreta: en local hubo primero un token de Vercel (`vck_…`) y luego una `sb_secret_…` caducada, ambas con `401 Invalid API key`. La **clave válida** (la que ya estaba en Vercel) se sincronizó a `.env.local`; con ella el bloqueo y el cambio de contraseñas funcionan. Comando de comprobación en `MEMORY.md`.
 
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
-- **Clave secreta de Supabase**: crear una *secret key* (`sb_secret_…`) y ponerla como `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel (Production y Preview). Sin ella quedan inactivos el cambio de contraseñas y el límite de intentos; el panel lo avisa y no deja enviar el formulario.
+- **Clave secreta de Supabase**: ya configurada (válida en `.env.local` y en Vercel, Production y Preview). Si alguna vez se rota, hay que actualizar los dos sitios; el comando de comprobación está en `MEMORY.md`.
 - Cambiar la contraseña por defecto de los comités y de la dirección (la de dirección todavía no tiene pantalla: se cambia desde el dashboard de Supabase).
 - Login: el límite propio y el `/direccion` ya están; faltan los límites de Supabase Auth más estrictos (Authentication → Rate Limits), el captcha (Turnstile) y MFA para la dirección.
 - Al cambiar una contraseña no se cierran las sesiones abiertas de ese comité (el Admin API no tiene cierre por usuario).

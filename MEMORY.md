@@ -50,7 +50,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
 
 La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para dos cosas: cambiar contraseñas de comités (`/panel/comites`) y limitar los intentos de acceso (tabla `login_attempts`). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
 
-> La que hubo en `.env.local` durante la Etapa 8 (`vck_…`) era un token de Vercel, no de Supabase: el Admin API devuelve `401 Invalid API key`.
+En `.env.local` y en Vercel vive la variable `SUPABASE_SERVICE_ROLE_KEY` con una `sb_secret_…` **válida** (creada el 20-oct-2026, rest/an Admin API responden 200). Comprobación rápida (no imprime la clave):
+
+```bash
+URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2-)
+K=$(grep -E '^SUPABASE_(SECRET|SERVICE_ROLE)_KEY=' .env.local | head -1 | cut -d= -f2-)
+curl -s -o /dev/null -w '%{http_code}\n' "$URL/auth/v1/admin/users?page=1&per_page=1" \
+  -H "apikey: $K" -H "Authorization: Bearer $K"   # debe dar 200
+```
+
+Si la clave de `.env.local` no es válida pero la de Vercel sí, se puede traer con
+`npx vercel env pull <archivo-temporal> --environment=production --yes` (y borrar el archivo enseguida).
+
+> Durante la Etapa 8 se colaron dos valores equivocados: un token de Vercel (`vck_…`, 401) y una
+> clave caducada (41 caracteres, `401 Invalid API key`). Ambas se sustituyeron por la buena.
 
 ## Acceso de los encargados
 

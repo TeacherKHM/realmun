@@ -6,7 +6,7 @@ import { committeeEmail, DIRECCION_CODE, direccionEmail } from "@/lib/committees
 import { checkThrottle, clientIp, recordAttempt } from "@/lib/login-throttle";
 import { createClient } from "@/lib/supabase/server";
 
-export type LoginState = { error: string | null };
+export type LoginState = { error: string | null; attempt: number };
 
 /** Mismo mensaje para cuenta inexistente y contraseña incorrecta. */
 const GENERIC_ERROR = "La contraseña no coincide con esa cuenta.";
@@ -18,13 +18,14 @@ function safeNext(value: string) {
   return next;
 }
 
-export async function signIn(_prev: LoginState, formData: FormData): Promise<LoginState> {
+export async function signIn(prev: LoginState, formData: FormData): Promise<LoginState> {
   const code = String(formData.get("committee") ?? "");
   const password = String(formData.get("password") ?? "");
   const next = safeNext(String(formData.get("next") ?? ""));
+  const attempt = prev.attempt + 1;
 
   if (!code || !password) {
-    return { error: "Elige un comité y escribe la contraseña." };
+    return { error: "Elige un comité y escribe la contraseña.", attempt };
   }
 
   const isDireccion = code === DIRECCION_CODE;
@@ -36,6 +37,7 @@ export async function signIn(_prev: LoginState, formData: FormData): Promise<Log
   if (gate.locked) {
     return {
       error: `Demasiados intentos fallidos. Vuelve a intentarlo en unos ${gate.retryMinutes} minutos.`,
+      attempt,
     };
   }
 
@@ -54,9 +56,9 @@ export async function signIn(_prev: LoginState, formData: FormData): Promise<Log
     await recordAttempt(email, ip, false);
 
     if (error.message.toLowerCase().includes("captcha")) {
-      return { error: "No se pudo verificar el captcha. Recarga la página e intenta de nuevo." };
+      return { error: "No se pudo verificar el captcha. Recarga la página e intenta de nuevo.", attempt };
     }
-    return { error: GENERIC_ERROR };
+    return { error: GENERIC_ERROR, attempt };
   }
 
   await recordAttempt(email, ip, true);

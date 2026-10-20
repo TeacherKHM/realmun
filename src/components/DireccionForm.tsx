@@ -9,7 +9,10 @@ import { DIRECCION_CODE } from "@/lib/committees";
 
 /** Acceso cerrado de la dirección: una sola contraseña, sin lista de comités. */
 export function DireccionForm() {
-  const [state, action] = useActionState<LoginState, FormData>(signIn, { error: null });
+  const [state, action] = useActionState<LoginState, FormData>(signIn, {
+    error: null,
+    attempt: 0,
+  });
 
   return (
     <form action={action} className="mt-8">

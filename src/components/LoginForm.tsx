@@ -15,13 +15,20 @@ type Props = {
 };
 
 export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
-  const [state, action] = useActionState<LoginState, FormData>(signIn, { error: null });
+  const [state, action] = useActionState<LoginState, FormData>(signIn, {
+    error: null,
+    attempt: 0,
+  });
   const [selected, setSelected] = useState(defaultCommittee ?? "");
   const isDireccion = selected === DIRECCION_CODE;
 
   return (
     <form action={action} className="mt-8">
-      <fieldset>
+      {/* El comité viaja aparte: React limpia el formulario tras cada intento
+          fallido y los radios perderían la selección. */}
+      <input type="hidden" name="committee" value={selected} />
+
+      <fieldset key={state.attempt}>
         <legend className="label">Comité</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {committees.map((committee) => (
@@ -31,9 +38,8 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
             >
               <input
                 type="radio"
-                name="committee"
+                name="committee-choice"
                 value={committee.code}
-                required
                 className="size-4 accent-ink"
                 checked={selected === committee.code}
                 onChange={() => setSelected(committee.code)}
@@ -51,9 +57,8 @@ export function LoginForm({ committees, defaultCommittee, next = "" }: Props) {
         <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-control border border-line bg-paper-warm px-3 py-3 text-sm has-checked:border-ink has-checked:bg-white">
           <input
             type="radio"
-            name="committee"
+            name="committee-choice"
             value={DIRECCION_CODE}
-            required
             className="size-4 accent-ink"
             checked={isDireccion}
             onChange={() => setSelected(DIRECCION_CODE)}
