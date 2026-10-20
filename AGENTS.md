@@ -282,6 +282,8 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 >
 > La clave secreta: en local hubo primero un token de Vercel (`vck_…`) y luego una `sb_secret_…` caducada, ambas con `401 Invalid API key`. La **clave válida** (la que ya estaba en Vercel) se sincronizó a `.env.local`; con ella el bloqueo y el cambio de contraseñas funcionan. Comando de comprobación en `MEMORY.md`.
 
+**Desplegado** (auto-deploy de Vercel, commit `69d72fa`, producción `realmun-wysrhbhf9`): `/` 200, `/login` 200, `/direccion` 200 con `noindex`, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/comite-1`, `/panel` y `/panel/comites` con 307 a `/login?next=…` sin sesión. Las fases `lock` (12/12), `unlock` (2/2) y `password` (11/11) y las cinco suites de regresión pasan también contra `https://realmun.vercel.app`, con 0 errores de JavaScript. La base quedó limpia: 0 asistencias, 32 delegados, 0 sanciones, 4 sesiones y 0 intentos de acceso.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
