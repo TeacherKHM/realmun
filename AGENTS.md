@@ -245,11 +245,14 @@ Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-m
 
 **Desplegado** (`vercel --prod`, producción `realmun-27l9ez8dv`): `/` 200, `/login` 200, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/*`, `/panel` y `/panel/comites` con 307 a `/login?next=…`. Las cinco suites pasan también contra producción y la base quedó igual que antes de las pruebas (0 asistencias, 32 delegados, 1 sanción preexistente, 4 sesiones).
 
+**Auto-deploy conectado**: el repositorio ya tiene remoto (`origin` → `github.com/TeacherKHM/realmun`) y la integración de Vercel despliega a producción en cada push a `main` (el deploy `realmun-v4w080dpd`, commit `90d2acd`, sustituyó al del CLI y quedó sirviendo `realmun.vercel.app`). `main` se mantiene sincronizado con `origin/main`; ya no hace falta `vercel --prod` para publicar.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - Cambiar la contraseña por defecto de los comités **y de la dirección**.
-- Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
+- Contraseñas: no hay pantalla para cambiarlas (ni de comités ni de dirección); por ahora se cambian desde el dashboard de Supabase (Auth → Users).
+- Login: falta límite de intentos propio + captcha/MFA; hoy solo protege el rate limit de Supabase Auth.
 - Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.
 - El directorio local `supabase/migrations/` no tiene las migraciones 0002–0005 (se aplicaron al remoto con otros nombres desde etapas anteriores). La base remota es la fuente de verdad; si se rehace el proyecto desde cero, hay que reconstruir 0002–0005 o volcar el esquema.
