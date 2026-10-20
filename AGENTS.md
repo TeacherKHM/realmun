@@ -283,7 +283,7 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 >
 > La clave secreta: en local hubo primero un token de Vercel (`vck_…`) y luego una `sb_secret_…` caducada, ambas con `401 Invalid API key`. La **clave válida** (la que ya estaba en Vercel) se sincronizó a `.env.local`; con ella el bloqueo y el cambio de contraseñas funcionan. Comando de comprobación en `MEMORY.md`.
 
-**Desplegado** (auto-deploy de Vercel, commit `69d72fa`, producción `realmun-wysrhbhf9`): `/` 200, `/login` 200, `/direccion` 200 con `noindex`, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/comite-1`, `/panel` y `/panel/comites` con 307 a `/login?next=…` sin sesión. Las fases `lock` (12/12), `unlock` (2/2) y `password` (11/11) y las cinco suites de regresión pasan también contra `https://realmun.vercel.app`, con 0 errores de JavaScript. La base quedó limpia: 0 asistencias, 32 delegados, 0 sanciones, 4 sesiones y 0 intentos de acceso.
+**Desplegado** (auto-deploy de Vercel, commits `69d72fa` y `4c245bf`, producción `realmun-m4penhu0w`): `/` 200, `/login` 200, `/direccion` 200 con `noindex`, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/comite-1`, `/panel` y `/panel/comites` con 307 a `/login?next=…` sin sesión. Las fases `lock` (12/12), `unlock` (2/2) y `password` (11/11) y las cinco suites de regresión pasan también contra `https://realmun.vercel.app`, con 0 errores de JavaScript. En producción se comprobó además que `/login` sirve solo los 4 radios de comité. La base quedó limpia: 0 asistencias, 32 delegados, 0 sanciones, 4 sesiones y 0 intentos de acceso.
 
 ### Pendientes
 
@@ -292,6 +292,7 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 - **Clave secreta de Supabase**: ya configurada (válida en `.env.local` y en Vercel, Production y Preview). Si alguna vez se rota, hay que actualizar los dos sitios; el comando de comprobación está en `MEMORY.md`.
 - Cambiar la contraseña por defecto de los comités y de la dirección (la de dirección todavía no tiene pantalla: se cambia desde el dashboard de Supabase).
 - Login: el límite propio y el `/direccion` ya están; faltan los límites de Supabase Auth más estrictos (Authentication → Rate Limits), el captcha (Turnstile) y MFA para la dirección.
+- El enlace a `/direccion` vive en el pie de `/login`; si se quiere todavía más discreto, basta con quitarlo (la dirección conoce la URL).
 - Al cambiar una contraseña no se cierran las sesiones abiertas de ese comité (el Admin API no tiene cierre por usuario).
 - Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.
 - El directorio local `supabase/migrations/` no tiene las migraciones 0002–0005 (se aplicaron al remoto con otros nombres desde etapas anteriores). La base remota es la fuente de verdad; si se rehace el proyecto desde cero, hay que reconstruir 0002–0005 o volcar el esquema.
