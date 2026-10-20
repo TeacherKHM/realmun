@@ -237,15 +237,17 @@ Se revisó toda la interfaz con dos lentes: **dirección de arte** (frontend-des
 | `verify-ui.mjs` — skip link, tokens, `aria-pressed`, relleno, `data-flat`, tabulares, 360 px | 24/24 OK |
 | `regress.mjs` / `panel.mjs` / `direccion.mjs` | 10/10 · 24/24 · 25/25 |
 | `eslint --max-warnings=0`, `tsc --noEmit`, `npm run build` | limpios |
+| Producción (`https://realmun.vercel.app`): `regress` / `panel` / `direccion` / `audit-ids` / `verify-ui` | 10/10 · 24/24 · 25/25 · 14/14 · 24/24 |
 
 Los e2e se actualizaron para aceptar el diálogo de confirmación (`page.on("dialog", d => d.accept())`); sin eso la eliminación de delegados se quedaba en el `confirm` y fallaba la limpieza. Los datos que escriben las pruebas (asistencia, delegado de prueba) se borraron al terminar: la base quedó en 0 asistencias, 32 delegados, 1 sanción preexistente.
 
-Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-movil.png`, `21-login.png`, `22-consola-resumen.png`, `23-consola-asistencia.png`, `24-consola-asistencia-movil.png`, `25-panel.png`, `26-panel-comites.png`, `27-tv.png`.
+Capturas nuevas (`~/Desktop/RealMUN-capturas/`): `19-portada.png`, `20-portada-movil.png`, `21-login.png`, `22-consola-resumen.png`, `23-consola-asistencia.png`, `24-consola-asistencia-movil.png`, `25-panel.png`, `26-panel-comites.png`, `27-tv.png`; las equivalentes de producción, en `prod/`.
+
+**Desplegado** (`vercel --prod`, producción `realmun-27l9ez8dv`): `/` 200, `/login` 200, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/*`, `/panel` y `/panel/comites` con 307 a `/login?next=…`. Las cinco suites pasan también contra producción y la base quedó igual que antes de las pruebas (0 asistencias, 32 delegados, 1 sanción preexistente, 4 sesiones).
 
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
-- Desplegar la pasada de UI/UX a producción (`vercel --prod`); local está verificado, producción no.
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - Cambiar la contraseña por defecto de los comités **y de la dirección**.
 - Conectar un remoto git a GitHub si se desea habilitar auto-deploy por push (no configurado aún).
