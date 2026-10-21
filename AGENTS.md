@@ -285,6 +285,54 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 
 **Desplegado** (auto-deploy de Vercel, commits `69d72fa` y `4c245bf`, producción `realmun-m4penhu0w`): `/` 200, `/login` 200, `/direccion` 200 con `noindex`, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/comite/comite-1`, `/panel` y `/panel/comites` con 307 a `/login?next=…` sin sesión. Las fases `lock` (12/12), `unlock` (2/2) y `password` (11/11) y las cinco suites de regresión pasan también contra `https://realmun.vercel.app`, con 0 errores de JavaScript. En producción se comprobó además que `/login` sirve solo los 4 radios de comité. La base quedó limpia: 0 asistencias, 32 delegados, 0 sanciones, 4 sesiones y 0 intentos de acceso.
 
+### Etapa 9 — Logos del modelo extraídos del PDF y del SVG (completada, sin migraciones)
+
+La dirección entregó dos archivos: `LOGOS MUN.pdf` (14 páginas de Canva) y `MUN_Logo.svg`. Ambos traen la marca **rasterizada**, no vectores: se extrajo cada figura a PNG con transparencia y se dejó un comando para repetirlo.
+
+**`scripts/extract-logos.mjs`** (sin dependencias, solo Node) hace el trabajo:
+
+- **PDF**: cada logo es un XObject de imagen con su `/SMask`. Se decodifica el flujo (`FlateDecode`), el color (escala de grises o RGB con perfil `/ICCBased`, `N` canales) y la máscara; se recorta al rectángulo de la silueta y se escribe el PNG.
+- **SVG**: no hay vectores útiles; cada logo son **dos PNG incrustados en base64** (color + máscara en grises) del mismo tamaño. Se decodifican (se recorren los chunks y se infla la concatenación de los `IDAT`, con los filtros 0–4) y se emparejan por dimensiones.
+- **Deduplicado perceptual**: antes de resumir el contenido se cuantiza el color (4 bits por canal) y el alfa (3 bits), para que dos renderizados del mismo logo con distinto antialias no cuenten como dos (Canva repite cada logo en varias páginas con ruido de ±2 por canal). **Nombres legibles**: `forma-tinta[-sobre-fondo]-origen-anchoxalto.png` («wordmark-rojo-pdf-1132x926», «insignia-blanco-sobre-rojo-pdf-840x840»). El nombre se calcula del propio mapa de píxeles: forma por proporción (insignia < 1.15 ≤ wordmark), fondo del anillo exterior y tinta del centro. Nada de índices.
+- Escribe además **`logos.json`** (manifiesto) que la galería lee.
+
+**`npm run logos`** regenera todo de una vez: limpia `public/logos/`, corre el script sobre el PDF y sobre el SVG y copia la galería. Hoy produce **11 logos únicos** (9 del PDF, 2 del SVG; el PDF traía 15 repeticiones).
+
+| Variante | Qué es |
+| --- | --- |
+| `wordmark-rojo/…/blanco/negro/verde-pdf-1132x926` | logotipo apaisado, con transparencia |
+| `wordmark-blanco-sobre-negro-pdf-1200x976` | logotipo a sangre sobre negro |
+| `insignia-rojo-sobre-blanco-pdf-700x700` | insignia cuadrada, rojo sobre blanco |
+| `insignia-blanco-sobre-rojo-pdf-840x840` | insignia cuadrada, blanco sobre rojo |
+| `insignia-blanco-sobre-negro-pdf-1120x1120` | insignia cuadrada, blanco sobre negro |
+| `insignia-negro-sobre-blanco-pdf-1120x1120` | insignia cuadrada, negro sobre blanco |
+| `insignia-rojo-y-blanco-svg-1999x1971` | insignia cuadrada a alta resolución (del SVG) |
+| `wordmark-rojo-svg-1132x926` | logotipo del SVG, con bordes más limpios |
+
+Notas de la extracción:
+
+- El SVG **no es la fuente buena** por ser vectorial (no lo es), pero sí trae la **insignia cuadrada a 1999×1971** (~1.7× la resolución del PDF) y una versión del logotipo con el antialias más limpio.
+- El PDF usa `/SMask` para la forma; **no** se sigue la geometría del flujo de contenido de Canva a propósito: sus recortes anidados y matrices por capa dan recuadros equivocados. La máscara ya es la silueta exacta.
+- La primera versión del script leía mal el color porque calculaba el paso de fila como `ancho × canales ÷ 8` (en bytes *por fila* es `ancho × canales`, sin dividir). Se corrigió y se verificó píxel a píxel: **42 222 muestras, 0 discrepancias** contra el `obj 30` (color) y el `obj 144` (máscara) del PDF.
+- El deduplicado por bytes dejaba pasar un **falso duplicado** (el mismo logotipo rojo en dos páginas, con 18 % de píxeles distintos pero **0 perceptibles**). Se cambió a deduplicado perceptual y los 11 logos quedan distintos de verdad.
+
+**Galería**: `public/logos/galeria.html` (fuente en `scripts/logos-galeria.html`) muestra cada logo sobre fondo claro y oscuro para juzgar contraste y transparencia. Lee `logos.json`, así que nunca lista un archivo que ya no existe. Se abre en `http://localhost:3000/logos/galeria.html`.
+
+Verificación (Chrome real, `puppeteer-core`, suite `logos.mjs`):
+
+| Comprobación | Resultado |
+| --- | --- |
+| `logos.json` responde y lista los 11 logos | OK |
+| Los 11 PNG se sirven como `image/png` | OK |
+| La galería pinta una tarjeta por logo | OK (11) |
+| Las 22 imágenes (claro + oscuro) decodifican | OK |
+| Hay 5 wordmarks con transparencia | OK |
+| Sin errores de JavaScript | OK |
+
+`tsc --noEmit`, `eslint --max-warnings=0` y `npm run build` quedan limpios, y las cinco suites de regresión (`regress`, `panel`, `direccion`, `audit-ids`, `verify-ui`) siguen pasando.
+
+> Los archivos de origen (`LOGOS MUN.pdf`, `MUN_Logo.svg`) quedan en la raíz del repo como fuente de verdad para regenerar; `public/logos/` es todo producto derivado.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).

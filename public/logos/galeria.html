@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logos del MUN — RealMUN</title>
+    <style>
+      :root { color-scheme: light dark; }
+      * { box-sizing: border-box; }
+      body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 2rem; }
+      h1 { font-size: 1.35rem; margin-bottom: .25rem; }
+      p.nota { max-width: 70ch; color: #666; margin-top: 0; }
+      ul { list-style: none; padding: 0; display: grid; gap: 1.25rem;
+           grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+      figure { margin: 0; border: 1px solid #ccc; border-radius: 12px; padding: 1rem;
+               display: flex; flex-direction: column; gap: .6rem; }
+      .swatch { display: grid; place-items: center; border-radius: 8px; padding: 1rem;
+                min-height: 140px; border: 1px solid #eee; }
+      .light { background: #fff; }
+      .dark { background: #14161a; }
+      img { max-width: 100%; max-height: 120px; object-fit: contain; display: block; }
+      figcaption { font-size: .78rem; word-break: break-word; color: #555; }
+      figcaption strong { display: block; color: #111; font-size: .82rem; }
+      .vacio { color: #a00; }
+    </style>
+  </head>
+  <body>
+    <h1>Logos del MUN</h1>
+    <p class="nota">
+      Extraídos de <code>LOGOS MUN.pdf</code> y <code>MUN_Logo.svg</code> con
+      <code>npm run logos</code>. Cada figura se muestra sobre fondo claro y oscuro para
+      comprobar el contraste y la transparencia. Los archivos viven en <code>public/logos/</code>.
+    </p>
+    <ul id="grid"></ul>
+    <script>
+      // La lista se lee del manifiesto que escribe `npm run logos`.
+      const grid = document.getElementById("grid");
+      fetch("./logos.json", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error("sin manifiesto"))))
+        .then((items) => {
+          if (!items.length) {
+            grid.innerHTML = '<li class="vacio">El manifiesto está vacío.</li>';
+            return;
+          }
+          for (const { file } of items) {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <figure>
+                <div class="swatch light"><img src="./${file}" alt="" loading="lazy" /></div>
+                <div class="swatch dark"><img src="./${file}" alt="" loading="lazy" /></div>
+                <figcaption><strong>${file.replace(/-\d+x\d+\.png$/, "").replace(/-pdf$/, "")}</strong>${file}</figcaption>
+              </figure>`;
+            grid.appendChild(li);
+          }
+        })
+        .catch(() => {
+          grid.innerHTML =
+            '<li class="vacio">No se pudo leer <code>logos.json</code>. Corre <code>npm run logos</code>.</li>';
+        });
+    </script>
+  </body>
+</html>

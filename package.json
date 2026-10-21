@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "logos": "rm -rf public/logos && mkdir -p public/logos && node scripts/extract-logos.mjs \"LOGOS MUN.pdf\" public/logos && node scripts/extract-logos.mjs MUN_Logo.svg public/logos && cp scripts/logos-galeria.html public/logos/galeria.html"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -146,7 +146,22 @@ npm run dev                      # desarrollo en localhost:3000
 npx next typegen                 # tipos de rutas después de crear rutas nuevas
 npm run build                    # verificación antes de desplegar
 vercel --prod                    # publicar (el proyecto ya está vinculado)
+npm run logos                    # regenera public/logos/ desde el PDF y el SVG
 ```
+
+## Logos del modelo
+
+Los archivos de origen viven en la raíz del repo: **`LOGOS MUN.pdf`** (14 páginas de Canva) y **`MUN_Logo.svg`**. Todo lo que hay en `public/logos/` es producto derivado: se borra y se regenera sin miedo.
+
+```bash
+npm run logos
+```
+
+Eso limpia `public/logos/`, corre `scripts/extract-logos.mjs` sobre el PDF y sobre el SVG, y copia la galería. Produce **11 logos únicos**, nombrados por lo que se ve (`forma-tinta[-sobre-fondo]-origen-anchoxalto.png`), más `logos.json` (manifiesto que lee la galería).
+
+- Galería para revisarlos sobre fondo claro y oscuro: **`http://localhost:3000/logos/galeria.html`** (fuente en `scripts/logos-galeria.html`). En producción queda en `https://realmun.vercel.app/logos/galeria.html`.
+- El script **no usa dependencias** (solo Node) y no sigue la geometría del flujo de contenido de Canva: usa el `/SMask` del PDF y el par color+máscara del SVG, que ya son la silueta exacta.
+- Sirve también para cualquier otro PDF/SVG de Canva: `node scripts/extract-logos.mjs <archivo> <carpeta>`.
 
 ## Decisiones que no hay que re-descubrir
 
@@ -159,3 +174,4 @@ vercel --prod                    # publicar (el proyecto ya está vinculado)
 - Las **server actions de la consola reciben el código del comité** como primer argumento: cada `<form>` lo ata con `action={accion.bind(null, committee.code)}` y `guardCommittee(code)` resuelve el comité destino (el propio para un encargado, cualquiera para la dirección). Así la dirección no escribe por error en el comité de su `profiles`. Si algún formulario nuevo olvida el `.bind`, para la dirección caería en su propio comité: hay que atarlo siempre.
 - El **proyecto de Supabase es el mismo para local y producción**: las pruebas de punta a punta contra `https://realmun.vercel.app` tocan los datos reales. Las pruebas que mutan (asistencia, delegados, nombres) se restauran solas o se limpian a mano al terminar.
 - El agente que construyó esto **no puede ver imágenes**: cualquier revisión visual la debe hacer una persona.
+- Los **logos del modelo** (Etapa 9) se extraen con `npm run logos`; el PDF y el SVG de Canva traen la marca **rasterizada**, no vectores, así que el script recorta cada figura por su máscara de transparencia en lugar de leer la geometría. La variante de mayor resolución es la insignia cuadrada del SVG (`insignia-rojo-y-blanco-svg-1999x1971`).
