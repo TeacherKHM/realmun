@@ -4,7 +4,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { Empty, NoSession, PageHeader, Panel } from "@/components/ui";
 import { getRubricMap, listDelegates, resolveConsole } from "@/lib/data";
 import { formatScore } from "@/lib/format";
-import { RUBRIC_CRITERIA, RUBRIC_SCALE, rubricAverage } from "@/lib/types";
+import { getRubricCriteria, RUBRIC_SCALE, rubricAverage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +25,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
     listDelegates(committee.id, true),
     getRubricMap(session.id),
   ]);
+  const rubricCriteria = getRubricCriteria(committee);
 
   if (delegates.length === 0) {
     return (
@@ -49,7 +50,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
     <>
       <PageHeader
         title="Rúbrica"
-        description={`${RUBRIC_CRITERIA.length} criterios, escala ${RUBRIC_SCALE.min} a ${RUBRIC_SCALE.max}, por delegado y sesión (${session.title}).`}
+        description={`${rubricCriteria.length} criterios, escala ${RUBRIC_SCALE.min} a ${RUBRIC_SCALE.max}, por delegado y sesión (${session.title}).`}
       />
 
       <Panel
@@ -101,7 +102,7 @@ export default async function RubricPage({ params }: PageProps<"/comite/[code]/r
                   <input type="hidden" name="delegate_id" value={delegate.id} />
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {RUBRIC_CRITERIA.map((criterion) => (
+                    {rubricCriteria.map((criterion) => (
                       <div key={criterion.key}>
                         <label className="label" htmlFor={`${delegate.id}-${criterion.key}`}>
                           {criterion.label}

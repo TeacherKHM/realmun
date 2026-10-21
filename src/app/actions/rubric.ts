@@ -3,14 +3,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
-import { RUBRIC_CRITERIA, RUBRIC_SCALE, type RubricScore } from "@/lib/types";
+import { getRubricCriteria, RUBRIC_SCALE, type RubricScore } from "@/lib/types";
 
 export async function saveRubric(code: string, formData: FormData) {
   const { committee } = await guardCommittee(code);
   const sessionId = requireText(formData.get("session_id"), "sesión");
   const delegateId = requireText(formData.get("delegate_id"), "delegado");
+  const criteria = getRubricCriteria(committee);
 
-  const scores: RubricScore[] = RUBRIC_CRITERIA.map((criterion) => {
+  const scores: RubricScore[] = criteria.map((criterion) => {
     const raw = Number.parseInt(String(formData.get(`score_${criterion.key}`) ?? ""), 10);
     const score = Number.isFinite(raw)
       ? Math.min(RUBRIC_SCALE.max, Math.max(RUBRIC_SCALE.min, raw))

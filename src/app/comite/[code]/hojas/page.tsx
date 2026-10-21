@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { addResolution, deleteResolution } from "@/app/actions/resolutions";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -14,10 +16,15 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
   if (!session) {
     return (
       <>
-        <PageHeader
-          title="Hojas de resolución"
-          description="Control de entrega de hojas de resolución por delegado."
-        />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <PageHeader
+            title="Hojas de resolución"
+            description="Control de entrega de hojas de resolución por delegado."
+          />
+          <Link href={`/comite/${committee.code}/hojas/votaciones`} className="btn btn-primary mt-1">
+            Votaciones por alianza
+          </Link>
+        </div>
         <NoSession code={committee.code} />
       </>
     );
@@ -35,10 +42,15 @@ export default async function ResolutionsPage({ params }: PageProps<"/comite/[co
 
   return (
     <>
-      <PageHeader
-        title="Hojas de resolución"
-        description="Marca cada entrega: la versión se numera sola (v1, v2, v3…) y queda la hora del registro."
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title="Hojas de resolución"
+          description="Marca cada entrega: la versión se numera sola (v1, v2, v3…) y queda la hora del registro."
+        />
+        <Link href={`/comite/${committee.code}/hojas/votaciones`} className="btn btn-primary mt-1">
+          Votaciones por alianza
+        </Link>
+      </div>
 
       {delegates.length === 0 ? (
         <Empty>Agrega delegados antes de registrar hojas de resolución.</Empty>

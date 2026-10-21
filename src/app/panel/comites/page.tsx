@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { updateRubricCriteria } from "@/app/actions/committees-rubric";
 import { updateCommittee, updateEncargado } from "@/app/actions/committees";
 import { PasswordForm } from "@/components/PasswordForm";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -8,6 +9,7 @@ import { committeeEmail } from "@/lib/committees";
 import { listCommittees, listProfiles } from "@/lib/data";
 import { adminKeyStatus } from "@/lib/supabase/admin";
 import type { AdminKeyState } from "@/lib/supabase/admin";
+import { DEFAULT_RUBRIC_CRITERIA, getRubricCriteria } from "@/lib/types";
 import type { Committee, ProfileRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -159,6 +161,22 @@ function CommitteeAdminCard({
         </form>
 
         <PasswordForm code={committee.code} sigla={committee.sigla} status={keyStatus} />
+
+        <details className="mt-4 border-t border-line-soft pt-4">
+          <summary className="cursor-pointer text-sm font-semibold">
+            Configurar rúbrica de este comité
+          </summary>
+          <form action={updateRubricCriteria.bind(null, committee.code)} className="mt-3 space-y-3">
+            {getRubricCriteria(committee).map((criterion, index) => (
+              <div key={`${criterion.key}-${index}`} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <input name="label" defaultValue={criterion.label} className="field" placeholder="Nombre del criterio" />
+                <input name="hint" defaultValue={criterion.hint ?? ""} className="field" placeholder="Descripción / pista" />
+              </div>
+            ))}
+            <p className="text-xs text-muted">Si lo dejas vacío, se usarán los criterios por defecto.</p>
+            <SubmitButton pendingText="Guardando…">Guardar criterios</SubmitButton>
+          </form>
+        </details>
       </div>
     </section>
   );

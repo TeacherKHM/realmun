@@ -1,8 +1,20 @@
 export type AttendanceStatus = "presente" | "ausente" | "justificado" | "retardo";
 /** Rol de la cuenta: una por comité ('encargado') o la vista global ('direccion'). */
 export type ProfileRole = "encargado" | "direccion";
-export type SanctionType = "amonestacion" | "advertencia" | "disciplina";
+export type SanctionType =
+  | "amonestacion"
+  | "advertencia"
+  | "disciplina"
+  | "expulsion_sesion"
+  | "expulsion_dia"
+  | "expulsion_mun";
 export type TimerMode = "countdown" | "countup";
+
+export type RubricCriterion = {
+  key: string;
+  label: string;
+  hint?: string;
+};
 
 export type Committee = {
   id: string;
@@ -13,6 +25,7 @@ export type Committee = {
   accent: string;
   sort_order: number;
   active_session_id: string | null;
+  rubric_criteria?: RubricCriterion[];
 };
 
 export type ProfileRow = {
@@ -67,6 +80,29 @@ export type ResolutionRow = {
   version: number;
   received_at: string;
   notes: string | null;
+};
+
+export type ResolutionGroupRow = {
+  id: string;
+  committee_id: string;
+  session_id: string | null;
+  name: string;
+  sponsors: string[];
+  notes: string | null;
+  status: "presentado" | "aprobado" | "rechazado";
+  created_at: string;
+};
+
+export type ResolutionVoteRow = {
+  id: string;
+  committee_id: string;
+  session_id: string | null;
+  resolution_group_id: string;
+  round: 1 | 2 | 3;
+  delegate_id: string;
+  vote: "a_favor" | "en_contra" | "abstencion";
+  created_at: string;
+  updated_at: string;
 };
 
 export type RubricScore = {
@@ -125,15 +161,26 @@ export type DireccionSnapshot = {
   committees: DireccionCommittee[];
 };
 
-/** Criterios de la rúbrica — editable en este archivo. */
-export const RUBRIC_CRITERIA = [
+/** Criterios por defecto de la rúbrica. */
+export const RUBRIC_SCALE = { min: 1, max: 10 } as const;
+
+export const DEFAULT_RUBRIC_CRITERIA = [
   { key: "participacion", label: "Participación", hint: "Intervenciones y aportes al debate" },
   { key: "argumentacion", label: "Argumentación", hint: "Solidez de los argumentos y fuentes citadas" },
   { key: "postura", label: "Postura diplomática", hint: "Apego a la política exterior de la delegación" },
   { key: "colaboracion", label: "Colaboración y forma", hint: "Bloques de trabajo, cortesía y protocolo" },
-] as const;
+] as const satisfies readonly RubricCriterion[];
 
-export const RUBRIC_SCALE = { min: 1, max: 10 } as const;
+/** Criterios de la rúbrica — configurable por comité. */
+export const RUBRIC_CRITERIA = DEFAULT_RUBRIC_CRITERIA;
+
+export function getRubricCriteria(committee?: { rubric_criteria?: RubricCriterion[] | null }) {
+  const criteria = committee?.rubric_criteria;
+  if (Array.isArray(criteria) && criteria.length > 0) {
+    return criteria;
+  }
+  return [...DEFAULT_RUBRIC_CRITERIA];
+}
 
 export const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
   presente: "Presente",
@@ -146,15 +193,28 @@ export const SANCTION_LABELS: Record<SanctionType, string> = {
   amonestacion: "Amonestación",
   advertencia: "Advertencia",
   disciplina: "Disciplina",
+  expulsion_sesion: "Expulsión por sesión",
+  expulsion_dia: "Expulsión por día",
+  expulsion_mun: "Expulsión del MUN",
 };
 
 export const SANCTION_PLURAL_LABELS: Record<SanctionType, string> = {
   amonestacion: "Amonestaciones",
   advertencia: "Advertencias",
   disciplina: "Disciplina",
+  expulsion_sesion: "Expulsiones por sesión",
+  expulsion_dia: "Expulsiones por día",
+  expulsion_mun: "Expulsiones del MUN",
 };
 
-export const SANCTION_ORDER: SanctionType[] = ["amonestacion", "advertencia", "disciplina"];
+export const SANCTION_ORDER: SanctionType[] = [
+  "amonestacion",
+  "advertencia",
+  "disciplina",
+  "expulsion_sesion",
+  "expulsion_dia",
+  "expulsion_mun",
+];
 
 export const ATTENDANCE_ORDER: AttendanceStatus[] = [
   "presente",
@@ -175,3 +235,11 @@ export function rubricAverage(scores: RubricScore[] | undefined | null): number 
   const total = scores.reduce((sum, item) => sum + (Number(item.score) || 0), 0);
   return Math.round((total / scores.length) * 10) / 10;
 }
+
+export const VOTE_LABELS: Record<ResolutionVoteRow["vote"], string> = {
+  a_favor: "A favor",
+  en_contra: "En contra",
+  abstencion: "Abstención",
+};
+
+export const VOTE_ORDER: Array<ResolutionVoteRow["vote"]> = ["a_favor", "en_contra", "abstencion"];

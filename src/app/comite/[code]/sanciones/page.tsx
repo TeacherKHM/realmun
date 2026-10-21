@@ -12,6 +12,9 @@ const TYPE_STYLE: Record<SanctionType, string> = {
   amonestacion: "border-gold/50 text-gold",
   advertencia: "border-sanction/40 text-sanction",
   disciplina: "border-sanction bg-sanction text-white",
+  expulsion_sesion: "border-ink bg-ink text-white",
+  expulsion_dia: "border-ink bg-ink text-white",
+  expulsion_mun: "border-ink bg-ink text-white",
 };
 
 export default async function SanctionsPage({ params }: PageProps<"/comite/[code]/sanciones">) {
@@ -21,7 +24,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
   if (!session) {
     return (
       <>
-        <PageHeader title="Sanciones" description="Amonestaciones, advertencias y disciplina." />
+        <PageHeader title="Sanciones" description="Amonestaciones, advertencias, disciplina y expulsiones (por sesión, por día o del MUN)." />
         <NoSession code={committee.code} />
       </>
     );
@@ -96,7 +99,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
               <SubmitButton pendingText="Registrando…">Registrar sanción</SubmitButton>
             </form>
 
-            <div className="mt-6 grid grid-cols-3 gap-3 border-t border-line-soft pt-5">
+            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-line-soft pt-5 sm:grid-cols-3 xl:grid-cols-6">
               {SANCTION_ORDER.map((type) => {
                 const total = sessionSanctions.filter((row) => row.type === type).length;
                 return (
@@ -104,7 +107,7 @@ export default async function SanctionsPage({ params }: PageProps<"/comite/[code
                     key={type}
                     label={SANCTION_LABELS[type]}
                     value={total}
-                    tone={total > 0 ? "sanction" : "default"}
+                    tone={total > 0 && type.startsWith("expulsion") ? "sanction" : total > 0 ? "sanction" : "default"}
                   />
                 );
               })}

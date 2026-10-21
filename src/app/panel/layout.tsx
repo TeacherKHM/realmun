@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { PanelNav } from "@/components/PanelNav";
@@ -29,6 +30,9 @@ export default async function DirectorPanelLayout({ children }: LayoutProps<"/pa
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             <PanelNav />
+            <Link href="/panel/galardones" className="text-white/70 hover:text-white">
+              Mejor delegado
+            </Link>
             <p className="text-white/60">{displayName ?? email}</p>
             <form action={signOut}>
               <button

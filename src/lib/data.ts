@@ -165,3 +165,32 @@ export async function getTimerState(committeeId: string): Promise<TimerState | n
     .maybeSingle<TimerState>();
   return data ?? null;
 }
+
+export async function listResolutionGroups(committeeId: string, sessionId?: string | null) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("resolution_groups")
+    .select("id, committee_id, session_id, name, sponsors, notes, status, created_at")
+    .eq("committee_id", committeeId)
+    .order("created_at", { ascending: true });
+
+  if (sessionId) query = query.eq("session_id", sessionId);
+
+  const { data } = await query;
+  return (data ?? []) as import("@/lib/types").ResolutionGroupRow[];
+}
+
+export async function listResolutionVotes(committeeId: string, sessionId?: string | null) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("resolution_votes")
+    .select("id, committee_id, session_id, resolution_group_id, round, delegate_id, vote, created_at, updated_at")
+    .eq("committee_id", committeeId)
+    .order("round", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (sessionId) query = query.eq("session_id", sessionId);
+
+  const { data } = await query;
+  return (data ?? []) as import("@/lib/types").ResolutionVoteRow[];
+}
