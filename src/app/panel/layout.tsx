@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
+import { Logo } from "@/components/Logo";
 import { PanelNav } from "@/components/PanelNav";
 import { requireDireccion } from "@/lib/auth";
 import { listCommittees } from "@/lib/data";
@@ -22,10 +22,8 @@ export default async function DirectorPanelLayout({ children }: LayoutProps<"/pa
 
       <header className="bg-ink text-white">
         <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4 sm:px-10">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <Link href="/panel" className="font-display text-3xl leading-none text-white">
-              RealMUN
-            </Link>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Logo size={30} />
             <p className="text-sm text-white/60">Panel de dirección · {SCHOOL_NAME}</p>
           </div>
 

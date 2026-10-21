@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
+import { Logo } from "@/components/Logo";
 
 type Props = {
   code: string;
@@ -29,10 +30,8 @@ export function NavRail({ code, sigla, accent, isDireccion = false }: Props) {
   return (
     <div className="flex h-full flex-col bg-ink text-white">
       <div className="border-b border-white/12 px-5 py-5">
-        <Link href="/" className="block font-display text-3xl leading-none text-white">
-          RealMUN
-        </Link>
-        <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
+        <Logo size={30} />
+        <p className="mt-3 flex items-center gap-2 text-sm text-white/70">
           <span
             aria-hidden
             className="inline-block h-3 w-3 shrink-0"

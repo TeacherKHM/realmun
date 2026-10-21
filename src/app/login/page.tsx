@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/LoginForm";
+import { Logo } from "@/components/Logo";
 import { listCommittees } from "@/lib/data";
 import { SCHOOL_NAME } from "@/lib/committees";
 
@@ -19,9 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main id="contenido" className="flex min-h-dvh flex-col bg-paper">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 text-sm text-muted sm:px-10">
-        <Link href="/" className="font-display text-2xl text-ink">
-          RealMUN
-        </Link>
+        <Logo size={32} />
         <p>{SCHOOL_NAME}</p>
       </header>
 

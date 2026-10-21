@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/Logo";
 import { LiveTimer } from "@/components/LiveTimer";
 import { SANCTION_PLURAL_LABELS, SANCTION_ORDER, type SanctionType, type TimerState } from "@/lib/types";
 
@@ -54,6 +55,9 @@ export function TvBoard({ code, initial }: { code: string; initial: TvPayload })
 
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 px-8 pt-7 pb-5 sm:px-12">
         <div>
+          <div className="mb-3">
+            <Logo size={38} />
+          </div>
           <h1 className="font-display text-5xl leading-none sm:text-6xl">
             {committee?.sigla ?? "Comité"}
           </h1>

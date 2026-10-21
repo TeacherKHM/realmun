@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { Placard } from "@/components/Placard";
 import { listCommittees } from "@/lib/data";
 import { SCHOOL_NAME } from "@/lib/committees";
@@ -18,7 +19,8 @@ export default async function HomePage() {
         ))}
       </div>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/12 px-6 py-4 text-sm text-white/55 sm:px-10">
-        <p>{SCHOOL_NAME}</p>
+        <Logo size={36} />
+        <p className="text-white/70">{SCHOOL_NAME}</p>
         <p>{formatLongDate()}</p>
       </header>
 

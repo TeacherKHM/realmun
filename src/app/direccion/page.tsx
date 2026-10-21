@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { DireccionForm } from "@/components/DireccionForm";
+import { Logo } from "@/components/Logo";
 import { SCHOOL_NAME } from "@/lib/committees";
 
 export const metadata: Metadata = {
@@ -17,9 +17,7 @@ export default function DireccionLoginPage() {
       <div aria-hidden className="h-1.5 bg-gold" />
 
       <header className="flex items-center justify-between px-6 py-5 text-sm text-white/70 sm:px-10">
-        <Link href="/" className="font-display text-2xl text-white">
-          RealMUN
-        </Link>
+        <Logo size={32} />
         <p>{SCHOOL_NAME}</p>
       </header>
 
