@@ -45,7 +45,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 | `src/app/page.tsx` | Portada con las placas |
 | `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité o por dirección |
 | `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
-| `src/app/panel/**` | Panel de dirección: `/panel` (radiografía), `/panel/rubrica` (rúbrica del presidente) y `/panel/comites` (edita comités y encargados) |
+| `src/app/panel/**` | Panel de dirección: `/panel` (radiografía), `/panel/rubrica` (rúbrica del presidente), `/panel/comites` (edita comités y encargados) y `/panel/seguridad` (contraseña propia) |
 | `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
 | `src/app/direccion/page.tsx` + `src/components/DireccionForm.tsx` | Acceso propio de la dirección (sin listar comités, `noindex`) |
 | `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
