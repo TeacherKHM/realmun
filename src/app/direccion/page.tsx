@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function DireccionLoginPage() {
+export default async function DireccionLoginPage({ searchParams }: PageProps<"/direccion">) {
+  const params = await searchParams;
+  const passwordUpdated = params.password === "ok";
+
   return (
     <main id="contenido" className="flex min-h-dvh flex-col bg-ink text-white">
       <div aria-hidden className="h-1.5 bg-gold" />
@@ -31,6 +34,15 @@ export default function DireccionLoginPage() {
             Solo el presidente o el encargado general. Desde aquí se ven y se editan los
             cuatro comités.
           </p>
+
+          {passwordUpdated ? (
+            <p
+              role="status"
+              className="mt-6 rounded-control border border-ok/50 bg-ok/15 px-3 py-2 text-sm text-white"
+            >
+              Contraseña actualizada. Entra con la nueva.
+            </p>
+          ) : null}
 
           <DireccionForm />
         </div>

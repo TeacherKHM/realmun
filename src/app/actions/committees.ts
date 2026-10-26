@@ -3,17 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { requireDireccion } from "@/lib/auth";
 import { guardSession, optionalText, requireText } from "@/lib/guard";
+import { isDefaultPassword, MIN_PASSWORD } from "@/lib/passwords";
 import { revalidateConsole } from "@/lib/revalidate";
 import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
-
-/** Largo mínimo de las contraseñas nuevas (Supabase exige 6 por defecto). */
-const MIN_PASSWORD = 10;
-
-/** Contraseñas de fábrica que ya no deben volver a usarse. */
-const DEFAULT_PASSWORDS = new Set(["comite-2026", "direccion-2026"]);
 
 export type PasswordState = { ok: boolean; message: string | null };
 
@@ -94,7 +89,7 @@ export async function setCommitteePassword(
   if (password !== confirm) {
     return { ok: false, message: "Las dos contraseñas no coinciden." };
   }
-  if (DEFAULT_PASSWORDS.has(password)) {
+  if (isDefaultPassword(password)) {
     return { ok: false, message: "Esa es la contraseña de fábrica: elige otra." };
   }
 

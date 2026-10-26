@@ -7,6 +7,7 @@ const TABS = [
   { href: "/panel", label: "Radiografía" },
   { href: "/panel/rubrica", label: "Rúbrica" },
   { href: "/panel/comites", label: "Comités y encargados" },
+  { href: "/panel/seguridad", label: "Seguridad" },
 ];
 
 export function PanelNav() {

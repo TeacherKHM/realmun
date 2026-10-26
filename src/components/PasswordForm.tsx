@@ -24,8 +24,8 @@ export function PasswordForm({ code, sigla, status }: Props) {
       <div>
         <p className="text-sm font-semibold">Contraseña del comité</p>
         <p className="mt-1 text-xs text-muted">
-          Se comparte con los delegados de {sigla}. Al cambiarla, quien ya esté dentro
-          seguirá dentro hasta que cierre sesión o caduque.
+          Se comparte con los delegados de {sigla}. Al cambiarla, las sesiones abiertas de
+          ese comité se cerrarán y habrá que entrar con la nueva.
         </p>
       </div>
 
