@@ -34,6 +34,10 @@ vercel --prod                         # publica a producción
 > El sitio quedó **público**: la protección de despliegue de Vercel no bloquea las rutas,
 > comprobado con `curl` (portada, login, TV y API responden sin sesión de Vercel).
 
+> El alias `realmun.vercel.app` puede quedar **fijado a un despliegue** y no moverse solo.
+> Si un push a `main` no actualiza el dominio, ejecutar
+> `vercel promote <url-del-despliegue-nuevo>` (o `vercel --prod`).
+
 ## Proyecto Supabase
 
 | Dato | Valor |

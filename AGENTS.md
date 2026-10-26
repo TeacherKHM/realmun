@@ -374,6 +374,10 @@ Verificación:
 | `/panel`, `/panel/rubrica`, `/panel/comites`, sanciones y votaciones con Chrome real | sin errores de JavaScript |
 | Limpieza de los datos de prueba | 0 sanciones, 0 delegados de prueba; la rúbrica preexistente quedó intacta |
 
+**Desplegado**: `realmun.vercel.app` se promovió a `dpl_7AXVqAZU5BVcH7LRSh5eV1ax9Zuq` (commit `6285150`). En producción: `/` 200, `/login` 200, `/direccion` 200 con `noindex`, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/panel`, `/panel/rubrica`, `/panel/comites` y `/comite/comite-1` dan 307 a login sin sesión. Con Chrome real se abrió el panel, `/panel/rubrica`, sanciones y votaciones con la contraseña nueva y **0 errores de JavaScript**. Un intento fallido controlado confirmó que el hash de `login_attempts` se calcula con el mismo `LOGIN_HASH_SALT` local; la fila se borró.
+
+> El alias `realmun.vercel.app` quedó **fijado a un despliegue** (como en etapas anteriores). Si un push a `main` no mueve el alias, hay que promover el despliegue nuevo con `vercel promote <url>`. El auto-deploy sigue creando el despliegue, pero no siempre reasigna el dominio.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
