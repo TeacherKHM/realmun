@@ -340,7 +340,7 @@ Verificación (Chrome real, `puppeteer-core`, suite `logos.mjs`):
 - `sanctions.points` y `sanctions.automatic`, con backfill de las sanciones existentes.
 - `sanction_points(type)` (3/5/10) y `register_sanction(...)`: inserta la sanción y aplica el escalamiento **en una sola transacción**. Es `security invoker`, así que el RLS del comité y de dirección sigue mandando; valida que el delegado y la sesión pertenezcan al comité.
 - Reglas: **3 advertencias → 1 amonestación automática**; **2 amonestaciones → `expulsion_mun` automática y delegado inactivo**. El historial conserva las advertencias y la amonestación automática; los puntos de todas las filas cuentan.
-- Políticas de `resolution_groups` y `resolution_votes` (antes tenían RLS activo y **cero políticas**) por comité y por dirección.
+- Políticas de `resolution_groups` y `resolution_votes` (antes tenían RLS activo y **cero políticas**) por comité y por dirección. `0014_fix_resolution_votes_policy.sql` corrige la comparación de comité en los votos: una alianza de otro comité se rechaza con 403.
 - `mun_awards()` deja de ser ejecutable por `anon`.
 
 **Consola de sanciones**:
