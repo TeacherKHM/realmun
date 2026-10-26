@@ -56,7 +56,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://lshgixbdzkfbjmjfbbvn.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
 ```
 
-La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para cambiar contraseñas de comités (`/panel/comites`) y para el Admin API. El límite de intentos usa `LOGIN_HASH_SALT` (hash SHA-256 de correo e IP; nunca se guardan en claro). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
+La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para cambiar contraseñas de comités (`/panel/comites`), la contraseña de la dirección (`/panel/seguridad`) y para el Admin API. El límite de intentos usa `LOGIN_HASH_SALT` (hash SHA-256 de correo e IP; nunca se guardan en claro). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
 
 En `.env.local` y en Vercel vive la variable `SUPABASE_SERVICE_ROLE_KEY` con una `sb_secret_…` **válida** (creada el 20-oct-2026, rest/an Admin API responden 200). Comprobación rápida (no imprime la clave):
 
@@ -75,7 +75,7 @@ Si la clave de `.env.local` no es válida pero la de Vercel sí, se puede traer 
 
 ## Acceso de los encargados
 
-Las contraseñas de los cuatro comités ya se cambiaron; **no se guardan aquí**. Se rotan desde `/panel/comites` (dirección) o desde el dashboard de Supabase.
+Las contraseñas de los cuatro comités ya se cambiaron; **no se guardan aquí**. Se rotan desde `/panel/comites` (dirección) o desde el dashboard de Supabase. Al cambiarlas, las sesiones abiertas de ese comité se cierran y hay que entrar con la nueva.
 
 | Comité | Correo | Ruta |
 | --- | --- | --- |
@@ -86,17 +86,18 @@ Las contraseñas de los cuatro comités ya se cambiaron; **no se guardan aquí**
 
 ## Acceso de la dirección
 
-Cuenta única del presidente / encargado general. **La contraseña por defecto se rotó el 26-oct-2026** y no se guarda en este repositorio. Se cambia desde el dashboard de Supabase (Auth → Users) o por el Admin API; si se pierde, se restablece ahí.
+Cuenta única del presidente / encargado general. **La contraseña por defecto se rotó el 26-oct-2026** y no se guarda en este repositorio. Se cambia desde `/panel/seguridad` (recomendado) o desde el dashboard de Supabase (Auth → Users); si se pierde, se restablece ahí.
 
 | Rol | Correo | Ruta | `profiles.role` |
 | --- | --- | --- | --- |
-| Dirección | `direccion@realmun.mx` | `/panel`, `/panel/rubrica` y `/panel/comites` | `direccion` |
+| Dirección | `direccion@realmun.mx` | `/panel`, `/panel/rubrica`, `/panel/comites` y `/panel/seguridad` | `direccion` |
 
 - Ve **todos** los comités en una sola vista (sesión, delegados en sala, sanciones, hojas y rúbrica) y se refresca solo cada 15 s.
 - **Entra a la consola de cualquier comité** (`/comite/<code>`) con la misma cuenta: atiende asistencia, cronómetro, sanciones, hojas, rúbrica, delegados y sesiones en los cuatro. El riel muestra «← Panel de dirección» y el encabezado una etiqueta «Vista de dirección».
 - **Edita el catálogo** en `/panel/comites`: nombre, sigla, tema y color de cada comité, más el nombre del encargado. La portada, las consolas y la TV lo reflejan al guardar.
 - **Entra por su propia pantalla** (`/direccion`), no por el login de comités: `/login` lista únicamente los 4 comités y enlaza al acceso de dirección en un pie discreto.
 - **Evalúa la rúbrica desde `/panel/rubrica`**: elige comité y sesión y usa la misma interfaz de la consola, sin entrar comité por comité. Los criterios se editan en `/panel/comites`.
+- **Cambia su propia contraseña desde `/panel/seguridad`**: pide la contraseña actual, exige mínimo 10 caracteres y rechaza la de fábrica. Al guardar, Supabase invalida la sesión y la app vuelve a `/direccion` con un aviso para entrar con la nueva.
 - Un encargado de comité **no** puede abrir `/panel` ni la consola de otro comité: la app lo regresa a la suya, la RPC `direccion_stats()` lo rechaza y el RLS no le deja escribir fuera.
 - La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
 - Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
@@ -112,7 +113,10 @@ set encrypted_password = extensions.crypt('NUEVA-CONTRASENA', extensions.gen_sal
 where email = '<code>@realmun.mx';
 ```
 
-La contraseña de la **dirección** todavía no tiene pantalla propia: se cambia desde el dashboard (Auth → Users) o con el Admin API. No se escribe en `MEMORY.md` ni en ningún archivo del repo.
+Cambiar la contraseña de la **dirección**:
+
+- **Desde la app** (recomendado): `/panel/seguridad` → contraseña actual, nueva y repetir (mínimo 10 caracteres). Requiere `SUPABASE_SECRET_KEY`; la app verifica la actual con un cliente sin cookies y aplica el cambio con el Admin API. Al guardar, la sesión actual se cierra y se vuelve a `/direccion?password=ok`.
+- **Si se olvidó la actual**: restablecer desde el dashboard (Auth → Users) o con el Admin API. No se escribe en `MEMORY.md` ni en ningún archivo del repo.
 
 ## Pantallas para el evento
 
@@ -121,6 +125,7 @@ La contraseña de la **dirección** todavía no tiene pantalla propia: se cambia
 - Panel de dirección (presidente): `https://realmun.vercel.app/panel`
 - Rúbrica del presidente: `https://realmun.vercel.app/panel/rubrica`
 - Comités y encargados (dirección): `https://realmun.vercel.app/panel/comites`
+- Seguridad de la dirección: `https://realmun.vercel.app/panel/seguridad`
 - Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
 - Marcador público de la TV: `GET /api/tv/comite-1` (sondeo cada segundo)
 

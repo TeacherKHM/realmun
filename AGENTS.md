@@ -279,7 +279,7 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 >
 > La app **prohíbe volver a las contraseñas de fábrica**, también desde la interfaz. Por eso la prueba restaura el valor original por el Admin API y no por el formulario. Las contraseñas reales no se guardan en este repositorio; la de dirección se rotó el 26-oct-2026.
 >
-> No se revocan las sesiones abiertas al cambiar una contraseña: el Admin API de GoTrue no expone un cierre por usuario. Las sesiones existentes siguen hasta que caduquen.
+> **Corrección (Etapa 11)**: cambiar la contraseña sí invalida las sesiones de esa cuenta. El Admin API no ofrece un cierre selectivo aparte, pero la actualización de contraseña deja inválida la sesión anterior; la app ahora lo avisa y, en la dirección, vuelve al acceso con la contraseña nueva.
 >
 > La clave secreta: en local hubo primero un token de Vercel (`vck_…`) y luego una `sb_secret_…` caducada, ambas con `401 Invalid API key`. La **clave válida** (la que ya estaba en Vercel) se sincronizó a `.env.local`; con ella el bloqueo y el cambio de contraseñas funcionan. Comando de comprobación en `MEMORY.md`.
 
@@ -378,15 +378,40 @@ Verificación:
 
 > El alias `realmun.vercel.app` quedó **fijado a un despliegue** (como en etapas anteriores). Si un push a `main` no mueve el alias, hay que promover el despliegue nuevo con `vercel promote <url>`. El auto-deploy sigue creando el despliegue, pero no siempre reasigna el dominio.
 
+### Etapa 11 — La dirección cambia su propia contraseña (completada, sin migraciones)
+
+Nueva pantalla **`/panel/seguridad`** (pestaña «Seguridad») para que el presidente / encargado general cambie su contraseña sin salir del panel.
+
+- **Formulario**: contraseña actual, nueva y repetir; mínimo 10 caracteres; rechaza `direccion-2026` y que la nueva sea igual a la actual. La cuenta se muestra con su correo.
+- **Verificación de la actual**: la server action `setDirectionPassword` usa un cliente de `@supabase/supabase-js` **sin persistencia** (no toca las cookies) y `signInWithPassword`; después aplica `auth.admin.updateUserById` con la clave secreta. Si la clave falta o no es válida, la página desactiva el formulario y lo avisa, igual que `/panel/comites`.
+- **Sesión**: Supabase invalida la sesión al cambiar la contraseña. En vez de dejar la consola rota, la action hace `signOut` y redirige a **`/direccion?password=ok`**; esa pantalla muestra «Contraseña actualizada. Entra con la nueva.». También se corrigió el texto de `/panel/comites`: las sesiones abiertas del comité se cierran al cambiar su contraseña.
+- **Reglas compartidas**: `src/lib/passwords.ts` centraliza `MIN_PASSWORD` y `isDefaultPassword`; lo usan comités y dirección.
+- `PanelNav` gana «Seguridad»; `/panel/seguridad` queda protegida por el layout `requireDireccion()` y por `proxy.ts`.
+
+Verificación:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `npx next typegen`, `tsc --noEmit`, `eslint --max-warnings=0`, `npm run build` | limpios |
+| UI local: acceso, pestaña activa, actual incorrecta, fábrica, contraseñas distintas, cambio, reentrada con la nueva y restauración | 12/12 OK |
+| UI producción (`https://realmun.vercel.app`): el mismo recorrido | 12/12 OK |
+| Regresión de producción (`test-prod`): panel, 4 tarjetas, rúbrica, sanciones y votaciones | OK, 0 errores JS |
+| Móvil 360 px y escritorio 1440 px: un solo `h1`, etiquetas, pestaña activa, sin desbordamiento | OK |
+| Contraseña de dirección restaurada al valor original | OK |
+
+**Desplegado**: commit de código `0f925b1` (auto-deploy `dpl_BPEqjAsmnLFLXpCaKPv724AmY2fy`, `realmun-pg0ri0u7p-k-hintze-m-7199s-projects.vercel.app`; en la verificación el alias `realmun.vercel.app` apuntaba a ese despliegue). En producción: `/` 200, `/login` 200, `/direccion` 200, `/vista-tv/comite-1` 200, `/api/tv/comite-1` 200; `/panel`, `/panel/seguridad`, `/panel/comites` y `/comite/comite-1` dan 307 a login sin sesión. Sin errores de JavaScript.
+
+> **Hallazgo**: el Admin API de Supabase **sí invalida la sesión** al cambiar la contraseña (inmediatamente después, `/panel` devolvía 307). La nota anterior que decía que las sesiones seguían abiertas era incorrecta; ya se corrigió el texto y el flujo de dirección maneja el cierre de sesión.
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - **Clave secreta de Supabase**: ya configurada (válida en `.env.local` y en Vercel, Production y Preview). Si alguna vez se rota, hay que actualizar los dos sitios; el comando de comprobación está en `MEMORY.md`.
-- Las contraseñas por defecto ya se rotaron (comités y dirección); la de dirección se cambia desde el dashboard de Supabase o por el Admin API.
+- Las contraseñas por defecto ya se rotaron (comités y dirección); la de dirección se cambia desde `/panel/seguridad` o, si se olvidó, desde el dashboard de Supabase / Admin API.
 - El repositorio de GitHub sigue siendo **público**. Ya no contiene contraseñas, pero conviene ponerlo privado o revisar qué se publica en `MEMORY.md`/`AGENTS.md`.
 - Login: el límite propio y el `/direccion` ya están; faltan los límites de Supabase Auth más estrictos (Authentication → Rate Limits), el captcha (Turnstile) y MFA para la dirección.
 - El enlace a `/direccion` vive en el pie de `/login`; si se quiere todavía más discreto, basta con quitarlo (la dirección conoce la URL).
-- Al cambiar una contraseña no se cierran las sesiones abiertas de ese comité (el Admin API no tiene cierre por usuario).
+- Al cambiar una contraseña, Supabase invalida las sesiones de esa cuenta; hay que volver a entrar con la nueva. La dirección lo hace automáticamente desde `/panel/seguridad`.
 - Si se quiere más de una cuenta de dirección, repetir el alta y poner `role = 'direccion'`.
 - El directorio local `supabase/migrations/` no tiene las migraciones 0002–0005 (se aplicaron al remoto con otros nombres desde etapas anteriores). La base remota es la fuente de verdad; si se rehace el proyecto desde cero, hay que reconstruir 0002–0005 o volcar el esquema.
