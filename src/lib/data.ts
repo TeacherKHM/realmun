@@ -102,7 +102,7 @@ export async function listSanctions(committeeId: string, sessionId?: string | nu
   const supabase = await createClient();
   let query = supabase
     .from("sanctions")
-    .select("id, committee_id, session_id, delegate_id, type, reason, created_at")
+    .select("id, committee_id, session_id, delegate_id, type, reason, points, automatic, created_at")
     .eq("committee_id", committeeId)
     .order("created_at", { ascending: false });
 

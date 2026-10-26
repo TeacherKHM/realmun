@@ -9,7 +9,7 @@ import { committeeEmail } from "@/lib/committees";
 import { listCommittees, listProfiles } from "@/lib/data";
 import { adminKeyStatus } from "@/lib/supabase/admin";
 import type { AdminKeyState } from "@/lib/supabase/admin";
-import { DEFAULT_RUBRIC_CRITERIA, getRubricCriteria } from "@/lib/types";
+import { getRubricCriteria } from "@/lib/types";
 import type { Committee, ProfileRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -86,9 +86,14 @@ function CommitteeAdminCard({
             {committee.topic ? ` · ${committee.topic}` : ""}
           </p>
         </div>
-        <Link href={`/comite/${committee.code}`} className="btn btn-quiet">
-          Abrir consola
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/panel/rubrica?comite=${committee.code}`} className="btn btn-quiet">
+            Rúbrica
+          </Link>
+          <Link href={`/comite/${committee.code}`} className="btn btn-quiet">
+            Abrir consola
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-5 px-5 py-5">

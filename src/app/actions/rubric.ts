@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { guardCommittee, optionalText, requireText } from "@/lib/guard";
 import { revalidateConsole } from "@/lib/revalidate";
@@ -34,6 +35,8 @@ export async function saveRubric(code: string, formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidateConsole(committee.code);
+  revalidatePath("/panel/rubrica");
+  revalidatePath("/panel");
 }
 
 export async function clearRubric(code: string, formData: FormData) {
@@ -51,4 +54,6 @@ export async function clearRubric(code: string, formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidateConsole(committee.code);
+  revalidatePath("/panel/rubrica");
+  revalidatePath("/panel");
 }

@@ -69,6 +69,8 @@ export type SanctionRow = {
   delegate_id: string;
   type: SanctionType;
   reason: string;
+  points: number;
+  automatic: boolean;
   created_at: string;
 };
 
@@ -215,6 +217,22 @@ export const SANCTION_ORDER: SanctionType[] = [
   "expulsion_dia",
   "expulsion_mun",
 ];
+
+/** Puntos que descuenta cada sanción (se acumulan por delegado). */
+export const SANCTION_POINTS: Record<SanctionType, number> = {
+  advertencia: 3,
+  amonestacion: 5,
+  disciplina: 5,
+  expulsion_sesion: 10,
+  expulsion_dia: 10,
+  expulsion_mun: 10,
+};
+
+/** Reglas de escalamiento del comité. */
+export const SANCTION_RULES = {
+  warningsPerReprimand: 3,
+  reprimandsToExpel: 2,
+} as const;
 
 export const ATTENDANCE_ORDER: AttendanceStatus[] = [
   "presente",

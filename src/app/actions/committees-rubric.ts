@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { guardCommittee, requireText } from "@/lib/guard";
+import { guardCommittee } from "@/lib/guard";
 import { requireDireccion } from "@/lib/auth";
 import { revalidateConsole } from "@/lib/revalidate";
 import { DEFAULT_RUBRIC_CRITERIA, type RubricCriterion } from "@/lib/types";
@@ -41,4 +42,6 @@ export async function updateRubricCriteria(code: string, formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidateConsole(committee.code);
+  revalidatePath("/panel/rubrica");
+  revalidatePath("/panel");
 }

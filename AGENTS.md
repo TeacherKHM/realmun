@@ -45,7 +45,7 @@ Requiere `.env.local` (ver `.env.local.example`).
 | `src/app/page.tsx` | Portada con las placas |
 | `src/app/login/page.tsx` + `src/components/LoginForm.tsx` | Acceso por comité o por dirección |
 | `src/app/comite/[code]/**` | Consola (layout con riel de navegación y selector de sesión) |
-| `src/app/panel/**` | Panel de dirección: `/panel` (radiografía) y `/panel/comites` (edita comités y encargados) |
+| `src/app/panel/**` | Panel de dirección: `/panel` (radiografía), `/panel/rubrica` (rúbrica del presidente) y `/panel/comites` (edita comités y encargados) |
 | `src/app/vista-tv/[code]/page.tsx` + `src/components/TvBoard.tsx` | Pantalla de TV |
 | `src/app/direccion/page.tsx` + `src/components/DireccionForm.tsx` | Acceso propio de la dirección (sin listar comités, `noindex`) |
 | `src/app/api/tv/[code]/route.ts` | Endpoint que consulta la TV cada segundo |
@@ -277,7 +277,7 @@ En la base se comprobó que el límite guarda **5 filas con `ok = false`** y `ac
 
 > **Bug real encontrado por la prueba** (y corregido): React 19 limpia el formulario después de cada server action, así que al fallar un acceso el **radio del comité se desmarcaba**; como los radios llevaban `required`, el siguiente clic en «Entrar» no enviaba nada y el usuario se quedaba sin respuesta. Ahora el comité viaja en un `input` oculto (`name="committee"`, los radios pasan a `name="committee-choice"` para agruparse) y el `fieldset` se remonta con `key={state.attempt}` (`LoginState` ganó `attempt`) para que la selección se vea marcada otra vez.
 >
-> La app **prohíbe volver a la contraseña de fábrica** (`comite-2026` / `direccion-2026`), también desde la interfaz. Por eso la prueba restaura el valor original por el Admin API y no por el formulario.
+> La app **prohíbe volver a las contraseñas de fábrica**, también desde la interfaz. Por eso la prueba restaura el valor original por el Admin API y no por el formulario. Las contraseñas reales no se guardan en este repositorio; la de dirección se rotó el 26-oct-2026.
 >
 > No se revocan las sesiones abiertas al cambiar una contraseña: el Admin API de GoTrue no expone un cierre por usuario. Las sesiones existentes siguen hasta que caduquen.
 >
@@ -333,12 +333,54 @@ Verificación (Chrome real, `puppeteer-core`, suite `logos.mjs`):
 
 > Los archivos de origen (`LOGOS MUN.pdf`, `MUN_Logo.svg`) quedan en la raíz del repo como fuente de verdad para regenerar; `public/logos/` es todo producto derivado.
 
+### Etapa 10 — Reglas de disciplina y rúbrica del presidente (completada)
+
+**Migración `0013_sanciones_reglas_y_votaciones.sql`** (aplicada al remoto):
+
+- `sanctions.points` y `sanctions.automatic`, con backfill de las sanciones existentes.
+- `sanction_points(type)` (3/5/10) y `register_sanction(...)`: inserta la sanción y aplica el escalamiento **en una sola transacción**. Es `security invoker`, así que el RLS del comité y de dirección sigue mandando; valida que el delegado y la sesión pertenezcan al comité.
+- Reglas: **3 advertencias → 1 amonestación automática**; **2 amonestaciones → `expulsion_mun` automática y delegado inactivo**. El historial conserva las advertencias y la amonestación automática; los puntos de todas las filas cuentan.
+- Políticas de `resolution_groups` y `resolution_votes` (antes tenían RLS activo y **cero políticas**) por comité y por dirección.
+- `mun_awards()` deja de ser ejecutable por `anon`.
+
+**Consola de sanciones**:
+
+- Formulario con los 6 tipos (antes la acción solo aceptaba 3), puntos por tipo, resumen acumulado por delegado (advertencias /3, amonestaciones /2, expulsiones, puntos y estado) y distintivo «automática».
+- Atajo **«Sanción rápida: celular / iPad»** que registra una amonestación con motivo fijo.
+- El historial usa todos los delegados (también los expulsados), no solo los activos.
+
+**Rúbrica del presidente**:
+
+- `src/components/RubricEditor.tsx` concentra la interfaz que antes vivía en la página del comité.
+- Nueva página **`/panel/rubrica`**: selector de comité y sesión, misma rúbrica y mismos criterios configurables; revalida consola, TV, `/panel` y `/panel/rubrica`.
+- Pestaña «Rúbrica» en `PanelNav` y enlaces desde las tarjetas de `/panel` y `/panel/comites`.
+
+**Limpieza y seguridad**:
+
+- `src/lib/data.ts` vuelve al selector tipado de comités (el fallback sin `rubric_criteria` rompía `tsc`).
+- `votaciones/page.tsx` deja de usar `any`; se retiran imports sin uso.
+- `LOGIN_HASH_SALT` se configuró en `.env.local` y en Vercel (Production, Preview y Development).
+- La contraseña por defecto de dirección se rotó; ya no aparece en `MEMORY.md`. Las contraseñas de comité también estaban rotadas.
+
+Verificación:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `npx next typegen`, `tsc --noEmit`, `eslint --max-warnings=0`, `npm run build` | limpios |
+| RPC con 3 advertencias | 3 advertencias + 1 amonestación automática (14 pts) |
+| RPC con 6 advertencias | 2 amonestaciones automáticas + `expulsion_mun`; delegado inactivo (38 pts) |
+| UI `/panel/rubrica`: guardar evaluación de un delegado temporal | fila creada en `rubric_scores` |
+| UI consola: 3 advertencias | resumen 3/3, 1/2 y amonestación automática en el historial |
+| `/panel`, `/panel/rubrica`, `/panel/comites`, sanciones y votaciones con Chrome real | sin errores de JavaScript |
+| Limpieza de los datos de prueba | 0 sanciones, 0 delegados de prueba; la rúbrica preexistente quedó intacta |
+
 ### Pendientes
 
 - Captura de pantalla revisada por una persona (el agente de esta sesión no puede ver imágenes). Capturas en `~/Desktop/RealMUN-capturas/`: `15-panel-login.png`, `12-panel-direccion.png`, `13-panel-direccion-900.png`, `14-panel-direccion-movil.png` (panel), `16-panel-comites.png`, `17-panel-comites-movil.png`, `18-direccion-asistencia.png` (Etapa 6) y `19`–`27` (Etapa 7: portada, login, consola, panel, TV y móvil).
 - Nombres reales de los comités, temas y plantilla de delegados (hoy son genéricos). Ya se pueden escribir desde `/panel/comites`.
 - **Clave secreta de Supabase**: ya configurada (válida en `.env.local` y en Vercel, Production y Preview). Si alguna vez se rota, hay que actualizar los dos sitios; el comando de comprobación está en `MEMORY.md`.
-- Cambiar la contraseña por defecto de los comités y de la dirección (la de dirección todavía no tiene pantalla: se cambia desde el dashboard de Supabase).
+- Las contraseñas por defecto ya se rotaron (comités y dirección); la de dirección se cambia desde el dashboard de Supabase o por el Admin API.
+- El repositorio de GitHub sigue siendo **público**. Ya no contiene contraseñas, pero conviene ponerlo privado o revisar qué se publica en `MEMORY.md`/`AGENTS.md`.
 - Login: el límite propio y el `/direccion` ya están; faltan los límites de Supabase Auth más estrictos (Authentication → Rate Limits), el captcha (Turnstile) y MFA para la dirección.
 - El enlace a `/direccion` vive en el pie de `/login`; si se quiere todavía más discreto, basta con quitarlo (la dirección conoce la URL).
 - Al cambiar una contraseña no se cierran las sesiones abiertas de ese comité (el Admin API no tiene cierre por usuario).

@@ -7,9 +7,10 @@ import { VOTE_LABELS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function VotingPage(props: any) {
-  const params = await props.params;
-  const code = params.code;
+export default async function VotingPage({
+  params,
+}: PageProps<"/comite/[code]/hojas/votaciones">) {
+  const { code } = await params;
   const { committee, session } = await resolveConsole(code);
 
   if (!session) {
@@ -28,11 +29,11 @@ export default async function VotingPage(props: any) {
   ]);
 
   const countVotes = (groupId: string, round: 1 | 2 | 3) => {
-    const list = votes.filter((v: any) => v.resolution_group_id === groupId && v.round === round);
-    const aFavor = list.filter((v: any) => v.vote === "a_favor").length;
-    const enContra = list.filter((v: any) => v.vote === "en_contra").length;
-    const abstencion = list.filter((v: any) => v.vote === "abstencion").length;
-    const map = Object.fromEntries(list.map((v: any) => [v.delegate_id, v.vote]));
+    const list = votes.filter((v) => v.resolution_group_id === groupId && v.round === round);
+    const aFavor = list.filter((v) => v.vote === "a_favor").length;
+    const enContra = list.filter((v) => v.vote === "en_contra").length;
+    const abstencion = list.filter((v) => v.vote === "abstencion").length;
+    const map = Object.fromEntries(list.map((v) => [v.delegate_id, v.vote]));
     return { total: list.length, aFavor, enContra, abstencion, map };
   };
 
@@ -68,7 +69,7 @@ export default async function VotingPage(props: any) {
             <Empty>Sin alianzas registradas.</Empty>
           ) : (
             <div className="space-y-4">
-              {groups.map((group: any) => {
+              {groups.map((group) => {
                 const r1 = countVotes(group.id, 1);
                 const r2 = countVotes(group.id, 2);
                 const r3 = countVotes(group.id, 3);
@@ -104,7 +105,7 @@ export default async function VotingPage(props: any) {
                               <p className="text-xs text-muted">A favor: {c.aFavor} · En contra: {c.enContra} {round !== 3 ? `· Abstención: ${c.abstencion}` : ""}</p>
                             </div>
                             <div className="divide-y divide-line-soft">
-                              {delegates.map((delegate: any) => {
+                              {delegates.map((delegate) => {
                                 const current = c.map[delegate.id];
                                 return (
                                   <form key={delegate.id} action={setResolutionVote.bind(null, committee.code)} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">

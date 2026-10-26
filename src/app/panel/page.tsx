@@ -234,6 +234,9 @@ function CommitteeCard({
         <Link href={`/comite/${committee.code}/delegados`} className="btn btn-quiet">
           Delegados
         </Link>
+        <Link href={`/panel/rubrica?comite=${committee.code}`} className="btn btn-quiet">
+          Rúbrica
+        </Link>
         <Link href={`/vista-tv/${committee.code}`} target="_blank" className="btn btn-quiet" rel="noopener noreferrer">
           TV
         </Link>

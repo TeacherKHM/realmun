@@ -19,6 +19,10 @@ NEXT_PUBLIC_SUPABASE_URL=https://lshgixbdzkfbjmjfbbvn.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
 ```
 
+`LOGIN_HASH_SALT` (cadena aleatoria de 64 hex) está en Production, Preview y Development;
+`SUPABASE_SERVICE_ROLE_KEY` en Production y Preview. En local, ambas viven en `.env.local`
+(ignorado por git). **Ninguna contraseña se guarda en este repositorio.**
+
 Comandos de despliegue:
 
 ```bash
@@ -48,7 +52,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://lshgixbdzkfbjmjfbbvn.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_gKCdlT2u_FRSB07GaMibFA_Vqmmo4dY
 ```
 
-La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para dos cosas: cambiar contraseñas de comités (`/panel/comites`) y limitar los intentos de acceso (tabla `login_attempts`). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
+La **clave secreta** (`SUPABASE_SECRET_KEY`, formato `sb_secret_…`, o la legacy `SUPABASE_SERVICE_ROLE_KEY`) se usa **solo en el servidor** para cambiar contraseñas de comités (`/panel/comites`) y para el Admin API. El límite de intentos usa `LOGIN_HASH_SALT` (hash SHA-256 de correo e IP; nunca se guardan en claro). Se crea en el dashboard: *Project Settings → API Keys → Create new secret key*; se pone en `.env.local` y en Vercel (Production y Preview). El gateway de Supabase la traduce a `service_role`, así que sirve para el Admin API. **Sin ella**, el cambio de contraseñas se desactiva y el límite de intentos falla abierto; el resto funciona.
 
 En `.env.local` y en Vercel vive la variable `SUPABASE_SERVICE_ROLE_KEY` con una `sb_secret_…` **válida** (creada el 20-oct-2026, rest/an Admin API responden 200). Comprobación rápida (no imprime la clave):
 
@@ -67,7 +71,7 @@ Si la clave de `.env.local` no es válida pero la de Vercel sí, se puede traer 
 
 ## Acceso de los encargados
 
-Contraseña inicial de los cuatro comités: **`comite-2026`** (cambiar antes del evento).
+Las contraseñas de los cuatro comités ya se cambiaron; **no se guardan aquí**. Se rotan desde `/panel/comites` (dirección) o desde el dashboard de Supabase.
 
 | Comité | Correo | Ruta |
 | --- | --- | --- |
@@ -78,16 +82,17 @@ Contraseña inicial de los cuatro comités: **`comite-2026`** (cambiar antes del
 
 ## Acceso de la dirección
 
-Cuenta única del presidente / encargado general. Contraseña inicial: **`direccion-2026`** (cambiar antes del evento).
+Cuenta única del presidente / encargado general. **La contraseña por defecto se rotó el 26-oct-2026** y no se guarda en este repositorio. Se cambia desde el dashboard de Supabase (Auth → Users) o por el Admin API; si se pierde, se restablece ahí.
 
 | Rol | Correo | Ruta | `profiles.role` |
 | --- | --- | --- | --- |
-| Dirección | `direccion@realmun.mx` | `/panel` y `/panel/comites` | `direccion` |
+| Dirección | `direccion@realmun.mx` | `/panel`, `/panel/rubrica` y `/panel/comites` | `direccion` |
 
 - Ve **todos** los comités en una sola vista (sesión, delegados en sala, sanciones, hojas y rúbrica) y se refresca solo cada 15 s.
 - **Entra a la consola de cualquier comité** (`/comite/<code>`) con la misma cuenta: atiende asistencia, cronómetro, sanciones, hojas, rúbrica, delegados y sesiones en los cuatro. El riel muestra «← Panel de dirección» y el encabezado una etiqueta «Vista de dirección».
 - **Edita el catálogo** en `/panel/comites`: nombre, sigla, tema y color de cada comité, más el nombre del encargado. La portada, las consolas y la TV lo reflejan al guardar.
 - **Entra por su propia pantalla** (`/direccion`), no por el login de comités: `/login` lista únicamente los 4 comités y enlaza al acceso de dirección en un pie discreto.
+- **Evalúa la rúbrica desde `/panel/rubrica`**: elige comité y sesión y usa la misma interfaz de la consola, sin entrar comité por comité. Los criterios se editan en `/panel/comites`.
 - Un encargado de comité **no** puede abrir `/panel` ni la consola de otro comité: la app lo regresa a la suya, la RPC `direccion_stats()` lo rechaza y el RLS no le deja escribir fuera.
 - La fila de `profiles` exige `committee_id`, así que la cuenta de dirección apunta al primer comité; no afecta al panel (ese lee por la RPC).
 - Para dar de alta más cuentas de dirección: crear la cuenta en Supabase Auth, insertar su fila en `profiles` y poner `role = 'direccion'`.
@@ -103,13 +108,14 @@ set encrypted_password = extensions.crypt('NUEVA-CONTRASENA', extensions.gen_sal
 where email = '<code>@realmun.mx';
 ```
 
-La contraseña de la **dirección** todavía no tiene pantalla: se cambia desde el dashboard (Auth → Users) o con el mismo SQL sobre `direccion@realmun.mx`.
+La contraseña de la **dirección** todavía no tiene pantalla propia: se cambia desde el dashboard (Auth → Users) o con el Admin API. No se escribe en `MEMORY.md` ni en ningún archivo del repo.
 
 ## Pantallas para el evento
 
 - Consola del encargado: `https://realmun.vercel.app/comite/comite-1`
 - Acceso de la dirección: `https://realmun.vercel.app/direccion`
 - Panel de dirección (presidente): `https://realmun.vercel.app/panel`
+- Rúbrica del presidente: `https://realmun.vercel.app/panel/rubrica`
 - Comités y encargados (dirección): `https://realmun.vercel.app/panel/comites`
 - Pantalla de TV (sin login, abrir en la TV): `https://realmun.vercel.app/vista-tv/comite-1`
 - Marcador público de la TV: `GET /api/tv/comite-1` (sondeo cada segundo)
@@ -123,9 +129,11 @@ La contraseña de la **dirección** todavía no tiene pantalla: se cambia desde 
 | `sessions` | Sesiones con fecha y estado; la activa se guarda en `committees.active_session_id` |
 | `delegates` | Delegados del comité (`name`, `delegation`, `active`, `sort_order`) |
 | `attendance` | Único par (sesión, delegado): `presente` / `retardo` / `justificado` / `ausente` |
-| `sanctions` | `amonestacion` / `advertencia` / `disciplina` con motivo y sesión |
+| `sanctions` | 6 tipos (`advertencia`, `amonestacion`, `disciplina`, `expulsion_sesion`, `expulsion_dia`, `expulsion_mun`), motivo, sesión, `points` y `automatic` |
 | `resolutions` | Hojas entregadas: versión incremental + hora + nota |
-| `rubric_scores` | `scores` jsonb (4 criterios 1–10) + comentario, único por sesión y delegado |
+| `resolution_groups` | Alianzas/proyectos de resolución por sesión: nombre, patrocinadores, estado |
+| `resolution_votes` | Voto por delegado, alianza y ronda (1–3); único por alianza/delegado/ronda |
+| `rubric_scores` | `scores` jsonb (criterios configurables 1–10) + comentario, único por sesión y delegado |
 | `timer_state` | Una fila por comité: `mode`, `running`, `ends_at`, `remaining_ms`, `started_at`, `elapsed_ms`, `speaker`, `label` |
 | `login_attempts` | Intentos de acceso fallidos (`account` e `ip_hash` hasheados, `ok`, `created_at`). RLS sin políticas: solo la usa el servidor con la clave secreta. Base del límite de 5 fallos / 15 min por cuenta+IP. |
 
@@ -135,7 +143,10 @@ Funciones y políticas:
 - `public.committee_tv_stats(text)` — marcador público de la TV (security definer, sin motivos de sanción).
 - `public.is_direccion()` — ¿la cuenta es de la dirección? (security definer, `execute` solo para `authenticated`; la usan las policies de dirección).
 - `public.direccion_stats()` — radiografía de los 4 comités para `/panel` (security definer; se niega si la cuenta no tiene `role = 'direccion'`; `execute` solo para `authenticated`).
-- Policies: catálogo de comités público; `timer_state` de lectura pública y escritura del propio comité; todo lo demás solo el comité dueño. `profiles` solo la fila propia.
+- `public.sanction_points(public.sanction_type)` — puntos de cada sanción (3/5/10), usada por la app y por la RPC.
+- `public.register_sanction(...)` — inserta la sanción y aplica el escalamiento en una sola transacción: 3 advertencias → 1 amonestación automática; 2 amonestaciones → `expulsion_mun` automática y delegado inactivo. `security invoker`, `execute` solo para `authenticated`.
+- `public.mun_awards()` — cálculo de «mejor delegado» (security definer; `execute` solo para `authenticated`, no para `anon`).
+- Policies: catálogo de comités público; `timer_state` de lectura pública y escritura del propio comité; todo lo demás solo el comité dueño. `profiles` solo la fila propia. `resolution_groups` y `resolution_votes` tienen políticas por comité y por dirección (antes estaban sin políticas).
 - Policies `*_direccion` (se **suman** por OR a las del comité, no las sustituyen): `committees`, `profiles` y las 7 tablas por comité dejan a la dirección leer y escribir en cualquiera. La dirección queda encerrada a las demás cuentas.
 - Realtime activado en `timer_state` (la TV usa sondeo HTTP, no realtime, para reducir fallos).
 
@@ -166,7 +177,8 @@ Eso limpia `public/logos/`, corre `scripts/extract-logos.mjs` sobre el PDF y sob
 ## Decisiones que no hay que re-descubrir
 
 - Las **hojas de resolución** se registran a mano por el encargado (control de entrega), no hay subida de archivos.
-- La **rúbrica** son 4 criterios configurables en `src/lib/types.ts`; escala 1–10, promedio calculado en el cliente del servidor (`rubricAverage`).
+- La **rúbrica** tiene criterios configurables por comité (`committees.rubric_criteria`, por defecto 4); escala 1–10 y promedio con `rubricAverage`. La dirección la evalúa en `/panel/rubrica` o dentro de la consola de cada comité.
+- **Disciplina**: los puntos y las conversiones se acumulan por delegado en todo el comité (no por sesión). Advertencia −3, amonestación −5, expulsión −10. El historial conserva las 3 advertencias y añade la amonestación automática; los puntos de ambas cuentan. La segunda amonestación crea `expulsion_mun` automática y desactiva al delegado; se puede reactivar a mano desde Delegados. Celular/iPad personal = 1 amonestación con el atajo de la consola.
 - La **TV no se autentica**; solo ve datos públicos por la función `committee_tv_stats` y `timer_state`.
 - El **nombre de cada comité, sigla, tema y color**, y el **nombre del encargado**, se editan desde `/panel/comites` (solo la dirección). Antes se hacía directo en la tabla `committees`.
 - Las **cuentas de Auth creadas por SQL** deben dejar en `''` (no `NULL`) `recovery_token`, `email_change`, `email_change_token_new/current`, `phone_change*` y `reauthentication_token`: con `NULL` GoTrue responde `500 Database error querying schema` al iniciar sesión.
